@@ -8,6 +8,10 @@ const (
 )
 
 func (p PartyType) IsValid() bool {
-	return p == PartyTypeOrganization ||
-		p == PartyTypeIndividual
+	switch p {
+	case PartyTypeOrganization, PartyTypeIndividual:
+		return true
+	default:
+		return false
+	}
 }
