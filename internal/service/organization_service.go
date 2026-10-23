@@ -130,3 +130,76 @@ func (s *OrganizationService) GetOrganizationByPartyID(
 
     return organization, nil
 }
+
+func (s *OrganizationService) UpdateOrganization(
+	ctx context.Context,
+	input domain.UpdateOrganizationInput,
+) (db.Organization, error) {
+	// 1. Parse party ID.
+	var partyID pgtype.UUID
+	if err := partyID.Scan(input.PartyID); err != nil {
+		return db.Organization{}, ErrInvalidPartyID
+	}
+
+	// 2. Check that the party exists.
+	party, err := s.partyRepository.GetPartyByID(ctx, partyID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return db.Organization{}, ErrPartyNotFound
+		}
+		return db.Organization{}, err
+	}
+
+	// 3. Make sure the party is an ORGANIZATION.
+	if party.PartyType != string(domain.PartyTypeOrganization) {
+		return db.Organization{}, ErrPartyNotOrganization
+	}
+
+	// 4. Make sure an organization profile exists.
+	_, err = s.organizationRepository.GetOrganizationByPartyID(ctx, partyID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return db.Organization{}, ErrOrganizationNotFound
+		}
+		return db.Organization{}, err
+	}
+
+	// 5. Validate employee count.
+	if input.EmployeeCount != nil {
+		if *input.EmployeeCount < 0 || int64(*input.EmployeeCount) > math.MaxInt32 {
+			return db.Organization{}, ErrInvalidEmployeeCount
+		}
+	}
+
+	// 6. Convert founded date.
+	var foundedDate pgtype.Date
+	if input.FoundedDate != nil && *input.FoundedDate != "" {
+		parsedDate, err := time.Parse("2006-01-02", *input.FoundedDate)
+		if err != nil {
+			return db.Organization{}, ErrInvalidFoundedDate
+		}
+		foundedDate = pgtype.Date{
+			Time:  parsedDate,
+			Valid: true,
+		}
+	}
+
+	// 7. Convert employee count from int to int32.
+	var employeeCount *int32
+	if input.EmployeeCount != nil {
+		value := int32(*input.EmployeeCount)
+		employeeCount = &value
+	}
+
+	params := db.UpdateOrganizationParams{
+		PartyID:            partyID,
+		RegistrationNumber: input.RegistrationNumber,
+		Industry:           input.Industry,
+		OrganizationType:   input.OrganizationType,
+		FoundedDate:        foundedDate,
+		EmployeeCount:      employeeCount,
+		Description:        input.Description,
+	}
+
+	return s.organizationRepository.UpdateOrganization(ctx, params)
+}

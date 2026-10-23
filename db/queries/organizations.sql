@@ -43,3 +43,26 @@ RETURNING
     description,
     created_at,
     updated_at;
+
+-- name: UpdateOrganization :one
+UPDATE organizations
+SET
+    registration_number = $2,
+    industry = $3,
+    organization_type = $4,
+    founded_date = $5,
+    employee_count = $6,
+    description = $7,
+    updated_at = NOW()
+WHERE party_id = $1
+RETURNING
+    id,
+    party_id,
+    registration_number,
+    industry,
+    organization_type,
+    founded_date,
+    employee_count,
+    description,
+    created_at,
+    updated_at;

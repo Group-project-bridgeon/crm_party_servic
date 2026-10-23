@@ -207,3 +207,116 @@ func (q *Queries) ListParties(ctx context.Context, arg ListPartiesParams) ([]Par
 	}
 	return items, nil
 }
+
+const updateParty = `-- name: UpdateParty :one
+UPDATE parties
+SET
+    display_name = $2,
+    legal_name = $3,
+    email = $4,
+    phone = $5,
+    website = $6,
+    tax_number = $7,
+    notes = $8,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING
+    id,
+    party_type,
+    display_name,
+    legal_name,
+    email,
+    phone,
+    website,
+    tax_number,
+    notes,
+    is_active,
+    created_at,
+    updated_at
+`
+
+type UpdatePartyParams struct {
+	ID          pgtype.UUID `json:"id"`
+	DisplayName string      `json:"display_name"`
+	LegalName   *string     `json:"legal_name"`
+	Email       *string     `json:"email"`
+	Phone       *string     `json:"phone"`
+	Website     *string     `json:"website"`
+	TaxNumber   *string     `json:"tax_number"`
+	Notes       *string     `json:"notes"`
+}
+
+func (q *Queries) UpdateParty(ctx context.Context, arg UpdatePartyParams) (Party, error) {
+	row := q.db.QueryRow(ctx, updateParty,
+		arg.ID,
+		arg.DisplayName,
+		arg.LegalName,
+		arg.Email,
+		arg.Phone,
+		arg.Website,
+		arg.TaxNumber,
+		arg.Notes,
+	)
+	var i Party
+	err := row.Scan(
+		&i.ID,
+		&i.PartyType,
+		&i.DisplayName,
+		&i.LegalName,
+		&i.Email,
+		&i.Phone,
+		&i.Website,
+		&i.TaxNumber,
+		&i.Notes,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updatePartyStatus = `-- name: UpdatePartyStatus :one
+UPDATE parties
+SET
+    is_active = $2,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING
+    id,
+    party_type,
+    display_name,
+    legal_name,
+    email,
+    phone,
+    website,
+    tax_number,
+    notes,
+    is_active,
+    created_at,
+    updated_at
+`
+
+type UpdatePartyStatusParams struct {
+	ID       pgtype.UUID `json:"id"`
+	IsActive bool        `json:"is_active"`
+}
+
+func (q *Queries) UpdatePartyStatus(ctx context.Context, arg UpdatePartyStatusParams) (Party, error) {
+	row := q.db.QueryRow(ctx, updatePartyStatus, arg.ID, arg.IsActive)
+	var i Party
+	err := row.Scan(
+		&i.ID,
+		&i.PartyType,
+		&i.DisplayName,
+		&i.LegalName,
+		&i.Email,
+		&i.Phone,
+		&i.Website,
+		&i.TaxNumber,
+		&i.Notes,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

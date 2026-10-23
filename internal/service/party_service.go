@@ -96,3 +96,62 @@ func (s *PartyService) CreateParty(
 
 	return s.repository.CreateParty(ctx, params)
 }
+
+func (s *PartyService) UpdateParty(
+	ctx context.Context,
+	input domain.UpdatePartyInput,
+) (db.Party, error) {
+	var partyID pgtype.UUID
+	if err := partyID.Scan(input.ID); err != nil {
+		return db.Party{}, ErrInvalidPartyID
+	}
+
+	if strings.TrimSpace(input.DisplayName) == "" {
+		return db.Party{}, ErrEmptyDisplayName
+	}
+
+	input.DisplayName = strings.TrimSpace(input.DisplayName)
+
+	_, err := s.repository.GetPartyByID(ctx, partyID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return db.Party{}, ErrPartyNotFound
+		}
+		return db.Party{}, err
+	}
+
+	params := db.UpdatePartyParams{
+		ID:          partyID,
+		DisplayName: input.DisplayName,
+		LegalName:   input.LegalName,
+		Email:       input.Email,
+		Phone:       input.Phone,
+		Website:     input.Website,
+		TaxNumber:   input.TaxNumber,
+		Notes:       input.Notes,
+	}
+
+	return s.repository.UpdateParty(ctx, params)
+}
+
+func (s *PartyService) UpdatePartyStatus(
+	ctx context.Context,
+	id pgtype.UUID,
+	isActive bool,
+) (db.Party, error) {
+	_, err := s.repository.GetPartyByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return db.Party{}, ErrPartyNotFound
+		}
+		return db.Party{}, err
+	}
+
+	params := db.UpdatePartyStatusParams{
+		ID:       id,
+		IsActive: isActive,
+	}
+
+	return s.repository.UpdatePartyStatus(ctx, params)
+}
+

@@ -112,3 +112,63 @@ func (q *Queries) GetOrganizationByPartyID(ctx context.Context, partyID pgtype.U
 	)
 	return i, err
 }
+
+const updateOrganization = `-- name: UpdateOrganization :one
+UPDATE organizations
+SET
+    registration_number = $2,
+    industry = $3,
+    organization_type = $4,
+    founded_date = $5,
+    employee_count = $6,
+    description = $7,
+    updated_at = NOW()
+WHERE party_id = $1
+RETURNING
+    id,
+    party_id,
+    registration_number,
+    industry,
+    organization_type,
+    founded_date,
+    employee_count,
+    description,
+    created_at,
+    updated_at
+`
+
+type UpdateOrganizationParams struct {
+	PartyID            pgtype.UUID `json:"party_id"`
+	RegistrationNumber *string     `json:"registration_number"`
+	Industry           *string     `json:"industry"`
+	OrganizationType   *string     `json:"organization_type"`
+	FoundedDate        pgtype.Date `json:"founded_date"`
+	EmployeeCount      *int32      `json:"employee_count"`
+	Description        *string     `json:"description"`
+}
+
+func (q *Queries) UpdateOrganization(ctx context.Context, arg UpdateOrganizationParams) (Organization, error) {
+	row := q.db.QueryRow(ctx, updateOrganization,
+		arg.PartyID,
+		arg.RegistrationNumber,
+		arg.Industry,
+		arg.OrganizationType,
+		arg.FoundedDate,
+		arg.EmployeeCount,
+		arg.Description,
+	)
+	var i Organization
+	err := row.Scan(
+		&i.ID,
+		&i.PartyID,
+		&i.RegistrationNumber,
+		&i.Industry,
+		&i.OrganizationType,
+		&i.FoundedDate,
+		&i.EmployeeCount,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

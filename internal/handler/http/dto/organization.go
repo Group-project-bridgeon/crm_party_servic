@@ -22,3 +22,13 @@ type OrganizationResponse struct {
 	CreatedAt          string  `json:"created_at"`
 	UpdatedAt          string  `json:"updated_at"`
 }
+
+type UpdateOrganizationRequest struct {
+	RegistrationNumber *string `json:"registration_number"`
+	Industry           *string `json:"industry"`
+	OrganizationType   *string `json:"organization_type"`
+	FoundedDate        *string `json:"founded_date"`
+	EmployeeCount      *int    `json:"employee_count"`
+	Description        *string `json:"description"`
+}
+

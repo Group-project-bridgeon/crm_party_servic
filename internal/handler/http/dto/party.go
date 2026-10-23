@@ -31,3 +31,18 @@ type ListPartiesResponse struct {
 	Limit  int             `json:"limit"`
 	Offset int             `json:"offset"`
 }
+
+type UpdatePartyRequest struct {
+	DisplayName string  `json:"display_name"`
+	LegalName   *string `json:"legal_name"`
+	Email       *string `json:"email"`
+	Phone       *string `json:"phone"`
+	Website     *string `json:"website"`
+	TaxNumber   *string `json:"tax_number"`
+	Notes       *string `json:"notes"`
+}
+
+type UpdatePartyStatusRequest struct {
+	IsActive bool `json:"is_active"`
+}
+

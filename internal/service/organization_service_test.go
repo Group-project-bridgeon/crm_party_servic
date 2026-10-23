@@ -18,7 +18,9 @@ type mockOrganizationRepository struct {
 	createOrganizationParams     db.CreateOrganizationParams
 	createOrganizationErr        error
 	getOrganizationByPartyIDFunc func(ctx context.Context, partyID pgtype.UUID) (db.Organization, error)
+	updateOrganizationFunc       func(ctx context.Context, params db.UpdateOrganizationParams) (db.Organization, error)
 }
+
 
 func (m *mockOrganizationRepository) CreateOrganization(
 	ctx context.Context,
@@ -51,6 +53,26 @@ func (m *mockOrganizationRepository) GetOrganizationByPartyID(
 
 	return db.Organization{}, pgx.ErrNoRows
 }
+
+func (m *mockOrganizationRepository) UpdateOrganization(
+	ctx context.Context,
+	params db.UpdateOrganizationParams,
+) (db.Organization, error) {
+	if m.updateOrganizationFunc != nil {
+		return m.updateOrganizationFunc(ctx, params)
+	}
+
+	return db.Organization{
+		PartyID:            params.PartyID,
+		RegistrationNumber: params.RegistrationNumber,
+		Industry:           params.Industry,
+		OrganizationType:   params.OrganizationType,
+		FoundedDate:        params.FoundedDate,
+		EmployeeCount:      params.EmployeeCount,
+		Description:        params.Description,
+	}, nil
+}
+
 
 func TestCreateOrganization_ValidOrganization(t *testing.T) {
 	ctx := context.Background()
@@ -628,3 +650,142 @@ func TestGetOrganizationByPartyID_RepositoryError(t *testing.T) {
 		)
 	}
 }
+
+func TestUpdateOrganization_Success(t *testing.T) {
+	partyUUID := "550e8400-e29b-41d4-a716-446655440000"
+	partyRepo := &mockPartyRepository{
+		getPartyByIDFunc: func(ctx context.Context, id pgtype.UUID) (db.Party, error) {
+			return db.Party{
+				ID:        id,
+				PartyType: string(domain.PartyTypeOrganization),
+			}, nil
+		},
+	}
+	orgRepo := &mockOrganizationRepository{
+		getOrganizationByPartyIDFunc: func(ctx context.Context, partyID pgtype.UUID) (db.Organization, error) {
+			return db.Organization{PartyID: partyID}, nil
+		},
+	}
+
+	svc := NewOrganizationService(partyRepo, orgRepo)
+	reg := "NEW-REG-001"
+	input := domain.UpdateOrganizationInput{
+		PartyID:            partyUUID,
+		RegistrationNumber: &reg,
+	}
+
+	org, err := svc.UpdateOrganization(context.Background(), input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if org.RegistrationNumber == nil || *org.RegistrationNumber != "NEW-REG-001" {
+		t.Fatalf("expected NEW-REG-001, got %v", org.RegistrationNumber)
+	}
+}
+
+func TestUpdateOrganization_PartyNotFound(t *testing.T) {
+	partyRepo := &mockPartyRepository{
+		getPartyByIDFunc: func(ctx context.Context, id pgtype.UUID) (db.Party, error) {
+			return db.Party{}, pgx.ErrNoRows
+		},
+	}
+	svc := NewOrganizationService(partyRepo, &mockOrganizationRepository{})
+	_, err := svc.UpdateOrganization(context.Background(), domain.UpdateOrganizationInput{
+		PartyID: "550e8400-e29b-41d4-a716-446655440000",
+	})
+	if !errors.Is(err, ErrPartyNotFound) {
+		t.Fatalf("expected ErrPartyNotFound, got %v", err)
+	}
+}
+
+func TestUpdateOrganization_PartyNotOrganization(t *testing.T) {
+	partyRepo := &mockPartyRepository{
+		getPartyByIDFunc: func(ctx context.Context, id pgtype.UUID) (db.Party, error) {
+			return db.Party{
+				ID:        id,
+				PartyType: string(domain.PartyTypeIndividual),
+			}, nil
+		},
+	}
+	svc := NewOrganizationService(partyRepo, &mockOrganizationRepository{})
+	_, err := svc.UpdateOrganization(context.Background(), domain.UpdateOrganizationInput{
+		PartyID: "550e8400-e29b-41d4-a716-446655440000",
+	})
+	if !errors.Is(err, ErrPartyNotOrganization) {
+		t.Fatalf("expected ErrPartyNotOrganization, got %v", err)
+	}
+}
+
+func TestUpdateOrganization_OrganizationNotFound(t *testing.T) {
+	partyRepo := &mockPartyRepository{
+		getPartyByIDFunc: func(ctx context.Context, id pgtype.UUID) (db.Party, error) {
+			return db.Party{
+				ID:        id,
+				PartyType: string(domain.PartyTypeOrganization),
+			}, nil
+		},
+	}
+	orgRepo := &mockOrganizationRepository{
+		getOrganizationByPartyIDFunc: func(ctx context.Context, partyID pgtype.UUID) (db.Organization, error) {
+			return db.Organization{}, pgx.ErrNoRows
+		},
+	}
+	svc := NewOrganizationService(partyRepo, orgRepo)
+	_, err := svc.UpdateOrganization(context.Background(), domain.UpdateOrganizationInput{
+		PartyID: "550e8400-e29b-41d4-a716-446655440000",
+	})
+	if !errors.Is(err, ErrOrganizationNotFound) {
+		t.Fatalf("expected ErrOrganizationNotFound, got %v", err)
+	}
+}
+
+func TestUpdateOrganization_InvalidEmployeeCount(t *testing.T) {
+	partyRepo := &mockPartyRepository{
+		getPartyByIDFunc: func(ctx context.Context, id pgtype.UUID) (db.Party, error) {
+			return db.Party{
+				ID:        id,
+				PartyType: string(domain.PartyTypeOrganization),
+			}, nil
+		},
+	}
+	orgRepo := &mockOrganizationRepository{
+		getOrganizationByPartyIDFunc: func(ctx context.Context, partyID pgtype.UUID) (db.Organization, error) {
+			return db.Organization{PartyID: partyID}, nil
+		},
+	}
+	svc := NewOrganizationService(partyRepo, orgRepo)
+	badCount := -5
+	_, err := svc.UpdateOrganization(context.Background(), domain.UpdateOrganizationInput{
+		PartyID:       "550e8400-e29b-41d4-a716-446655440000",
+		EmployeeCount: &badCount,
+	})
+	if !errors.Is(err, ErrInvalidEmployeeCount) {
+		t.Fatalf("expected ErrInvalidEmployeeCount, got %v", err)
+	}
+}
+
+func TestUpdateOrganization_InvalidFoundedDate(t *testing.T) {
+	partyRepo := &mockPartyRepository{
+		getPartyByIDFunc: func(ctx context.Context, id pgtype.UUID) (db.Party, error) {
+			return db.Party{
+				ID:        id,
+				PartyType: string(domain.PartyTypeOrganization),
+			}, nil
+		},
+	}
+	orgRepo := &mockOrganizationRepository{
+		getOrganizationByPartyIDFunc: func(ctx context.Context, partyID pgtype.UUID) (db.Organization, error) {
+			return db.Organization{PartyID: partyID}, nil
+		},
+	}
+	svc := NewOrganizationService(partyRepo, orgRepo)
+	badDate := "not-a-date"
+	_, err := svc.UpdateOrganization(context.Background(), domain.UpdateOrganizationInput{
+		PartyID:     "550e8400-e29b-41d4-a716-446655440000",
+		FoundedDate: &badDate,
+	})
+	if !errors.Is(err, ErrInvalidFoundedDate) {
+		t.Fatalf("expected ErrInvalidFoundedDate, got %v", err)
+	}
+}
+

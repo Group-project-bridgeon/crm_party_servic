@@ -33,3 +33,11 @@ func (r *postgresOrganizationRepository) GetOrganizationByPartyID(
 ) (db.Organization, error) {
 	return r.queries.GetOrganizationByPartyID(ctx, partyID)
 }
+
+func (r *postgresOrganizationRepository) UpdateOrganization(
+	ctx context.Context,
+	params db.UpdateOrganizationParams,
+) (db.Organization, error) {
+	return r.queries.UpdateOrganization(ctx, params)
+}
+

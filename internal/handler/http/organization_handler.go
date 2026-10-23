@@ -23,7 +23,13 @@ type OrganizationService interface {
         ctx context.Context,
         partyID pgtype.UUID,
     ) (db.Organization, error)
+
+    UpdateOrganization(
+        ctx context.Context,
+        input domain.UpdateOrganizationInput,
+    ) (db.Organization, error)
 }
+
 
 
 type OrganizationHandler struct {
@@ -161,4 +167,67 @@ func (h *OrganizationHandler) GetOrganizationByPartyID(c *fiber.Ctx) error {
     return c.Status(fiber.StatusOK).JSON(
         toOrganizationResponse(organization),
     )
+}
+
+func (h *OrganizationHandler) UpdateOrganization(c *fiber.Ctx) error {
+	partyIDStr := c.Params("party_id")
+	var partyID pgtype.UUID
+	if err := partyID.Scan(partyIDStr); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid party id",
+		})
+	}
+
+	var req dto.UpdateOrganizationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	input := domain.UpdateOrganizationInput{
+		PartyID:            partyIDStr,
+		RegistrationNumber: req.RegistrationNumber,
+		Industry:           req.Industry,
+		OrganizationType:   req.OrganizationType,
+		FoundedDate:        req.FoundedDate,
+		EmployeeCount:      req.EmployeeCount,
+		Description:        req.Description,
+	}
+
+	organization, err := h.service.UpdateOrganization(c.Context(), input)
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrInvalidPartyID):
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid party id",
+			})
+		case errors.Is(err, service.ErrPartyNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "party not found",
+			})
+		case errors.Is(err, service.ErrPartyNotOrganization):
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "party is not an organization",
+			})
+		case errors.Is(err, service.ErrOrganizationNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "organization not found",
+			})
+		case errors.Is(err, service.ErrInvalidEmployeeCount):
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "employee_count must be zero or greater",
+			})
+		case errors.Is(err, service.ErrInvalidFoundedDate):
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "founded_date must be in YYYY-MM-DD format",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(toOrganizationResponse(organization))
 }

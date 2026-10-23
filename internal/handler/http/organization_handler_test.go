@@ -24,6 +24,11 @@ type mockOrganizationService struct {
 		ctx context.Context,
 		partyID pgtype.UUID,
 	) (db.Organization, error)
+
+	updateOrganizationFunc func(
+		ctx context.Context,
+		input domain.UpdateOrganizationInput,
+	) (db.Organization, error)
 }
 
 func (m *mockOrganizationService) CreateOrganization(
@@ -36,6 +41,19 @@ func (m *mockOrganizationService) CreateOrganization(
 
 	return db.Organization{}, nil
 }
+
+func (m *mockOrganizationService) UpdateOrganization(
+	ctx context.Context,
+	input domain.UpdateOrganizationInput,
+) (db.Organization, error) {
+	if m.updateOrganizationFunc != nil {
+		return m.updateOrganizationFunc(ctx, input)
+	}
+
+	return db.Organization{}, nil
+}
+
+
 
 func TestCreateOrganization_Success(t *testing.T) {
 	app := fiber.New()

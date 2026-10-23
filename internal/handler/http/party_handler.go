@@ -1,24 +1,35 @@
 package http
 
 import (
+	"context"
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/group-project/crm_party_service/internal/db"
 	"github.com/group-project/crm_party_service/internal/domain"
 	"github.com/group-project/crm_party_service/internal/handler/http/dto"
 	"github.com/group-project/crm_party_service/internal/service"
 	"github.com/jackc/pgx/v5/pgtype"
-	"strconv"
 )
 
-type PartyHandler struct {
-	service *service.PartyService
+type PartyService interface {
+	CreateParty(ctx context.Context, input domain.CreatePartyInput) (db.Party, error)
+	GetPartyByID(ctx context.Context, id pgtype.UUID) (db.Party, error)
+	ListParties(ctx context.Context, params db.ListPartiesParams) ([]db.Party, error)
+	UpdateParty(ctx context.Context, input domain.UpdatePartyInput) (db.Party, error)
+	UpdatePartyStatus(ctx context.Context, id pgtype.UUID, isActive bool) (db.Party, error)
 }
 
-func NewPartyHandler(service *service.PartyService) *PartyHandler {
+type PartyHandler struct {
+	service PartyService
+}
+
+func NewPartyHandler(service PartyService) *PartyHandler {
 	return &PartyHandler{
 		service: service,
 	}
 }
+
 
 func (h *PartyHandler) CreateParty(c *fiber.Ctx) error {
 	var req dto.CreatePartyRequest
@@ -60,28 +71,7 @@ func (h *PartyHandler) CreateParty(c *fiber.Ctx) error {
 		}
 	}
 
-	response := dto.PartyResponse{
-		ID:          party.ID.String(),
-		PartyType:   party.PartyType,
-		DisplayName: party.DisplayName,
-		LegalName:   party.LegalName,
-		Email:       party.Email,
-		Phone:       party.Phone,
-		Website:     party.Website,
-		TaxNumber:   party.TaxNumber,
-		Notes:       party.Notes,
-		IsActive:    party.IsActive,
-	}
-
-	if party.CreatedAt.Valid {
-		response.CreatedAt = party.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-	}
-
-	if party.UpdatedAt.Valid {
-		response.UpdatedAt = party.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-	}
-
-	return c.Status(fiber.StatusCreated).JSON(response)
+	return c.Status(fiber.StatusCreated).JSON(toPartyResponse(party))
 }
 
 func (h *PartyHandler) GetPartyByID(c *fiber.Ctx) error {
@@ -109,28 +99,7 @@ func (h *PartyHandler) GetPartyByID(c *fiber.Ctx) error {
 		}
 	}
 
-	response := dto.PartyResponse{
-		ID:          party.ID.String(),
-		PartyType:   party.PartyType,
-		DisplayName: party.DisplayName,
-		LegalName:   party.LegalName,
-		Email:       party.Email,
-		Phone:       party.Phone,
-		Website:     party.Website,
-		TaxNumber:   party.TaxNumber,
-		Notes:       party.Notes,
-		IsActive:    party.IsActive,
-	}
-
-	if party.CreatedAt.Valid {
-		response.CreatedAt = party.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-	}
-
-	if party.UpdatedAt.Valid {
-		response.UpdatedAt = party.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-	}
-
-	return c.JSON(response)
+	return c.JSON(toPartyResponse(party))
 }
 
 func (h *PartyHandler) ListParties(c *fiber.Ctx) error {
@@ -196,29 +165,114 @@ func (h *PartyHandler) ListParties(c *fiber.Ctx) error {
 	}
 
 	for _, party := range parties {
-		item := dto.PartyResponse{
-			ID:          party.ID.String(),
-			PartyType:   party.PartyType,
-			DisplayName: party.DisplayName,
-			LegalName:   party.LegalName,
-			Email:       party.Email,
-			Phone:       party.Phone,
-			Website:     party.Website,
-			TaxNumber:   party.TaxNumber,
-			Notes:       party.Notes,
-			IsActive:    party.IsActive,
-		}
-
-		if party.CreatedAt.Valid {
-			item.CreatedAt = party.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-		}
-
-		if party.UpdatedAt.Valid {
-			item.UpdatedAt = party.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-		}
-
-		response.Data = append(response.Data, item)
+		response.Data = append(response.Data, toPartyResponse(party))
 	}
 
 	return c.JSON(response)
 }
+
+func (h *PartyHandler) UpdateParty(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req dto.UpdatePartyRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	input := domain.UpdatePartyInput{
+		ID:          id,
+		DisplayName: req.DisplayName,
+		LegalName:   req.LegalName,
+		Email:       req.Email,
+		Phone:       req.Phone,
+		Website:     req.Website,
+		TaxNumber:   req.TaxNumber,
+		Notes:       req.Notes,
+	}
+
+	party, err := h.service.UpdateParty(c.Context(), input)
+	if err != nil {
+		switch err {
+		case service.ErrInvalidPartyID:
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid party id",
+			})
+		case service.ErrEmptyDisplayName:
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "display name is required",
+			})
+		case service.ErrPartyNotFound:
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "party not found",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to update party",
+			})
+		}
+	}
+
+	return c.JSON(toPartyResponse(party))
+}
+
+func (h *PartyHandler) UpdatePartyStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var partyID pgtype.UUID
+	if err := partyID.Scan(id); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid party id",
+		})
+	}
+
+	var req dto.UpdatePartyStatusRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	party, err := h.service.UpdatePartyStatus(c.Context(), partyID, req.IsActive)
+	if err != nil {
+		switch err {
+		case service.ErrPartyNotFound:
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "party not found",
+			})
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to update party status",
+			})
+		}
+	}
+
+	return c.JSON(toPartyResponse(party))
+}
+
+func toPartyResponse(party db.Party) dto.PartyResponse {
+	response := dto.PartyResponse{
+		ID:          party.ID.String(),
+		PartyType:   party.PartyType,
+		DisplayName: party.DisplayName,
+		LegalName:   party.LegalName,
+		Email:       party.Email,
+		Phone:       party.Phone,
+		Website:     party.Website,
+		TaxNumber:   party.TaxNumber,
+		Notes:       party.Notes,
+		IsActive:    party.IsActive,
+	}
+
+	if party.CreatedAt.Valid {
+		response.CreatedAt = party.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
+	if party.UpdatedAt.Valid {
+		response.UpdatedAt = party.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
+	return response
+}
+

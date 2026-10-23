@@ -38,3 +38,18 @@ func (r *postgresPartyRepository) CreateParty(
 ) (db.Party, error) {
 	return r.queries.CreateParty(ctx, params)
 }
+
+func (r *postgresPartyRepository) UpdateParty(
+	ctx context.Context,
+	params db.UpdatePartyParams,
+) (db.Party, error) {
+	return r.queries.UpdateParty(ctx, params)
+}
+
+func (r *postgresPartyRepository) UpdatePartyStatus(
+	ctx context.Context,
+	params db.UpdatePartyStatusParams,
+) (db.Party, error) {
+	return r.queries.UpdatePartyStatus(ctx, params)
+}
+

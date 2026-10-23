@@ -18,4 +18,10 @@ type OrganizationRepository interface {
 		ctx context.Context,
 		partyID pgtype.UUID,
 	) (db.Organization, error)
+
+	UpdateOrganization(
+		ctx context.Context,
+		params db.UpdateOrganizationParams,
+	) (db.Organization, error)
 }
+
