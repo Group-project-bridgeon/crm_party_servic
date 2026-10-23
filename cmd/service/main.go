@@ -106,11 +106,11 @@ func main() {
 	compositeHandler := httpHandler.NewCompositeHandler(compositeService)
 
 	app := fiber.New(fiber.Config{
-		AppName: "CRM Party Service",
+		AppName:      "CRM Party Service",
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	})
-
-
-
 
 	// Middlewares
 	app.Use(recover.New())
@@ -141,25 +141,41 @@ func main() {
 		Composite:    compositeHandler,
 	})
 
+	// Channel to catch server startup / runtime errors
+	serverErrors := make(chan error, 1)
 
-
-
-
-
-	// Graceful shutdown
-	shutdownChan := make(chan os.Signal, 1)
-	signal.Notify(shutdownChan, os.Interrupt, syscall.SIGTERM)
-
+	// Start server in background goroutine
 	go func() {
-		<-shutdownChan
-		log.Println("gracefully shutting down server...")
-		if err := app.ShutdownWithTimeout(5 * time.Second); err != nil {
-			log.Printf("error during server shutdown: %v", err)
+		log.Printf("party service running on port %s (env: %s)", cfg.Port, cfg.Environment)
+		if err := app.Listen(cfg.Port); err != nil {
+			serverErrors <- err
 		}
 	}()
 
-	log.Printf("party service running on port %s", cfg.Port)
-	if err := app.Listen(cfg.Port); err != nil && err != fiber.ErrBadGateway {
-		log.Printf("server terminated: %v", err)
+	// Channel to listen for OS interrupt and termination signals
+	shutdownChan := make(chan os.Signal, 1)
+	signal.Notify(shutdownChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
+	// Block until either a fatal server error or an OS termination signal
+	select {
+	case err := <-serverErrors:
+		log.Fatalf("server terminated unexpectedly: %v", err)
+
+	case sig := <-shutdownChan:
+		log.Printf("received signal '%s', initiating graceful shutdown...", sig)
+
+		// 1. Gracefully shutdown Fiber HTTP server (draining in-flight requests)
+		if err := app.ShutdownWithTimeout(cfg.ShutdownTimeout); err != nil {
+			log.Printf("error during server shutdown: %v", err)
+		} else {
+			log.Println("HTTP server closed gracefully")
+		}
+
+		// 2. Close PostgreSQL connection pool cleanly
+		log.Println("closing database connection pool...")
+		pool.Close()
+		log.Println("database pool closed successfully")
+
+		log.Println("graceful shutdown completed successfully")
 	}
 }

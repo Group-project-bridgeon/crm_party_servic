@@ -2,13 +2,16 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
-	Port        string
-	DatabaseURL string
-	Environment string
+	Port            string
+	DatabaseURL     string
+	Environment     string
+	ShutdownTimeout time.Duration
 }
 
 func Load() *Config {
@@ -24,10 +27,17 @@ func Load() *Config {
 
 	environment := getEnv("ENV", "development")
 
+	shutdownTimeoutSecondsStr := getEnv("SHUTDOWN_TIMEOUT_SECONDS", "10")
+	timeoutSec, err := strconv.Atoi(shutdownTimeoutSecondsStr)
+	if err != nil || timeoutSec <= 0 {
+		timeoutSec = 10
+	}
+
 	return &Config{
-		Port:        port,
-		DatabaseURL: databaseURL,
-		Environment: environment,
+		Port:            port,
+		DatabaseURL:     databaseURL,
+		Environment:     environment,
+		ShutdownTimeout: time.Duration(timeoutSec) * time.Second,
 	}
 }
 

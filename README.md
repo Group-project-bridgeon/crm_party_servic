@@ -37,6 +37,7 @@ This service implements Martin Fowler's **Party Archetype Pattern**:
 | `PORT` | HTTP server listening port | `:8080` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://postgres:postgres@localhost:5432/party?sslmode=disable` |
 | `ENV` | Environment name (`development`, `production`) | `development` |
+| `SHUTDOWN_TIMEOUT_SECONDS` | Maximum time to wait for in-flight requests to complete during shutdown | `10` |
 
 ### 3. Running with Docker Compose
 ```bash

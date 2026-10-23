@@ -3,12 +3,14 @@ package config
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestLoad_Defaults(t *testing.T) {
 	os.Unsetenv("PORT")
 	os.Unsetenv("DATABASE_URL")
 	os.Unsetenv("ENV")
+	os.Unsetenv("SHUTDOWN_TIMEOUT_SECONDS")
 
 	cfg := Load()
 
@@ -23,16 +25,22 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.DatabaseURL == "" {
 		t.Fatal("expected default DatabaseURL to be non-empty")
 	}
+
+	if cfg.ShutdownTimeout != 10*time.Second {
+		t.Fatalf("expected default 10s shutdown timeout, got %v", cfg.ShutdownTimeout)
+	}
 }
 
 func TestLoad_CustomEnv(t *testing.T) {
 	os.Setenv("PORT", "3000")
 	os.Setenv("DATABASE_URL", "postgres://custom:custom@localhost:5432/custom_db")
 	os.Setenv("ENV", "production")
+	os.Setenv("SHUTDOWN_TIMEOUT_SECONDS", "25")
 	defer func() {
 		os.Unsetenv("PORT")
 		os.Unsetenv("DATABASE_URL")
 		os.Unsetenv("ENV")
+		os.Unsetenv("SHUTDOWN_TIMEOUT_SECONDS")
 	}()
 
 	cfg := Load()
@@ -47,5 +55,9 @@ func TestLoad_CustomEnv(t *testing.T) {
 
 	if cfg.DatabaseURL != "postgres://custom:custom@localhost:5432/custom_db" {
 		t.Fatalf("expected custom db url, got %s", cfg.DatabaseURL)
+	}
+
+	if cfg.ShutdownTimeout != 25*time.Second {
+		t.Fatalf("expected 25s shutdown timeout, got %v", cfg.ShutdownTimeout)
 	}
 }
