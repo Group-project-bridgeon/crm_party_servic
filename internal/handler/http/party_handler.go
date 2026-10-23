@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -249,6 +250,32 @@ func (h *PartyHandler) UpdatePartyStatus(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(toPartyResponse(party))
+}
+
+func (h *PartyHandler) DeleteParty(c *fiber.Ctx) error {
+	partyIDStr := c.Params("id")
+	var partyID pgtype.UUID
+	if err := partyID.Scan(partyIDStr); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid party id",
+		})
+	}
+
+	_, err := h.service.UpdatePartyStatus(c.Context(), partyID, false)
+	if err != nil {
+		if errors.Is(err, service.ErrPartyNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "party not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to delete party",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "party deactivated successfully",
+	})
 }
 
 func toPartyResponse(party db.Party) dto.PartyResponse {

@@ -169,6 +169,18 @@ func TestPartyEndpoints(t *testing.T) {
 			t.Fatal("expected is_active to be false")
 		}
 	}
+
+	// 9. Delete Party (Deactivate) - Success
+	{
+		req := httptest.NewRequest(http.MethodDelete, "/api/v1/parties/"+createdParty.ID, nil)
+		resp, err := app.Test(req)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", resp.StatusCode)
+		}
+	}
 }
 
 func TestOrganizationEndpoints(t *testing.T) {

@@ -937,65 +937,17 @@ func setupTestApp() (*fiber.App, *inMemoryStore) {
 
 	app := fiber.New()
 
-	// Routes
-	app.Post("/api/v1/parties", partyHandler.CreateParty)
-	app.Get("/api/v1/parties", partyHandler.ListParties)
-	app.Get("/api/v1/parties/:id", partyHandler.GetPartyByID)
-	app.Put("/api/v1/parties/:id", partyHandler.UpdateParty)
-	app.Patch("/api/v1/parties/:id/status", partyHandler.UpdatePartyStatus)
-
-	app.Post("/api/v1/organizations", organizationHandler.CreateOrganization)
-	app.Get("/api/v1/organizations/:party_id", organizationHandler.GetOrganizationByPartyID)
-	app.Put("/api/v1/organizations/:party_id", organizationHandler.UpdateOrganization)
-
-	app.Post("/api/v1/individuals", individualHandler.CreateIndividual)
-	app.Get("/api/v1/individuals/:party_id", individualHandler.GetIndividualByPartyID)
-	app.Put("/api/v1/individuals/:party_id", individualHandler.UpdateIndividual)
-
-	app.Post("/api/v1/customers", customerHandler.CreateCustomer)
-	app.Get("/api/v1/customers", customerHandler.ListCustomers)
-	app.Get("/api/v1/customers/:id", customerHandler.GetCustomerByID)
-	app.Get("/api/v1/customers/party/:party_id", customerHandler.GetCustomerByPartyID)
-	app.Put("/api/v1/customers/:id", customerHandler.UpdateCustomer)
-	app.Post("/api/v1/customers/:id/user-accounts", customerHandler.CreateCustomerUserAccount)
-	app.Get("/api/v1/customers/:id/user-accounts", customerHandler.ListCustomerUserAccounts)
-	app.Patch("/api/v1/customers/user-accounts/:account_id/status", customerHandler.UpdateCustomerUserAccountStatus)
-
-	app.Post("/api/v1/suppliers", supplierHandler.CreateSupplier)
-	app.Get("/api/v1/suppliers", supplierHandler.ListSuppliers)
-	app.Get("/api/v1/suppliers/:id", supplierHandler.GetSupplierByID)
-	app.Get("/api/v1/suppliers/party/:party_id", supplierHandler.GetSupplierByPartyID)
-	app.Put("/api/v1/suppliers/:id", supplierHandler.UpdateSupplier)
-	app.Post("/api/v1/suppliers/:id/user-accounts", supplierHandler.CreateSupplierUserAccount)
-	app.Get("/api/v1/suppliers/:id/user-accounts", supplierHandler.ListSupplierUserAccounts)
-	app.Patch("/api/v1/suppliers/user-accounts/:account_id/status", supplierHandler.UpdateSupplierUserAccountStatus)
-
-	app.Post("/api/v1/parties/:party_id/addresses", addressHandler.CreateAddress)
-	app.Get("/api/v1/parties/:party_id/addresses", addressHandler.ListAddressesByPartyID)
-	app.Get("/api/v1/addresses/:address_id", addressHandler.GetAddressByID)
-	app.Put("/api/v1/addresses/:address_id", addressHandler.UpdateAddress)
-	app.Delete("/api/v1/addresses/:address_id", addressHandler.DeleteAddress)
-
-	app.Post("/api/v1/parties/:party_id/contacts", contactHandler.CreateContact)
-	app.Get("/api/v1/parties/:party_id/contacts", contactHandler.ListContactsByPartyID)
-	app.Get("/api/v1/contacts/:contact_id", contactHandler.GetContactByID)
-	app.Put("/api/v1/contacts/:contact_id", contactHandler.UpdateContact)
-	app.Delete("/api/v1/contacts/:contact_id", contactHandler.DeleteContact)
-
-	app.Post("/api/v1/parties/:party_id/contact-persons", contactHandler.CreateContactPerson)
-	app.Get("/api/v1/parties/:party_id/contact-persons", contactHandler.ListContactPersonsByPartyID)
-	app.Get("/api/v1/contact-persons/:person_id", contactHandler.GetContactPersonByID)
-	app.Put("/api/v1/contact-persons/:person_id", contactHandler.UpdateContactPerson)
-	app.Delete("/api/v1/contact-persons/:person_id", contactHandler.DeleteContactPerson)
-
-	app.Post("/api/v1/parties/:party_id/notes", noteHandler.CreateNote)
-	app.Get("/api/v1/parties/:party_id/notes", noteHandler.ListNotesByPartyID)
-	app.Get("/api/v1/notes/:note_id", noteHandler.GetNoteByID)
-	app.Delete("/api/v1/notes/:note_id", noteHandler.DeleteNote)
-
-	app.Get("/api/v1/parties/:id/360", compositeHandler.GetParty360)
-	app.Post("/api/v1/customers/composite", compositeHandler.CreateCompositeCustomer)
-	app.Post("/api/v1/suppliers/composite", compositeHandler.CreateCompositeSupplier)
+	httpHandler.RegisterRoutes(app, httpHandler.Handlers{
+		Party:        partyHandler,
+		Organization: organizationHandler,
+		Individual:   individualHandler,
+		Customer:     customerHandler,
+		Supplier:     supplierHandler,
+		Address:      addressHandler,
+		Contact:      contactHandler,
+		Note:         noteHandler,
+		Composite:    compositeHandler,
+	})
 
 	return app, store
 }

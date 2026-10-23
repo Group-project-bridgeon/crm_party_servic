@@ -68,6 +68,7 @@ go run cmd/service/main.go
 | `GET` | `/api/v1/parties/:id` | Get party by ID |
 | `PUT` | `/api/v1/parties/:id` | Update party details |
 | `PATCH` | `/api/v1/parties/:id/status` | Activate or deactivate party |
+| `DELETE` | `/api/v1/parties/:id` | Deactivate party (soft delete) |
 | `GET` | `/api/v1/parties/:id/360` | **Party 360° View**: Unified response with profile, roles, addresses, and contacts |
 
 ### 2. Organization Profiles
