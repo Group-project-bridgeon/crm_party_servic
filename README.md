@@ -39,16 +39,42 @@ This service implements Martin Fowler's **Party Archetype Pattern**:
 | `ENV` | Environment name (`development`, `production`) | `development` |
 | `SHUTDOWN_TIMEOUT_SECONDS` | Maximum time to wait for in-flight requests to complete during shutdown | `10` |
 
-### 3. Running with Docker Compose
+### 3. Running with Docker & Docker Compose
+
+#### Option A: Full Stack with Docker Compose (Recommended)
+Automatically initializes PostgreSQL with migrations and boots the Party service:
 ```bash
-# Start PostgreSQL database
-docker-compose up -d
+# Build and start both PostgreSQL and CRM Party Service
+docker compose up --build -d
 
-# Run database migrations
-# Using golang-migrate or direct sql schema
-psql -h localhost -U postgres -d party -f db/migrations/000001_create_party_schema.up.sql
+# View live logs
+docker compose logs -f party-service
 
-# Start party service
+# Check health status
+curl http://localhost:8080/health
+
+# Stop stack
+docker compose down
+```
+
+#### Option B: Build and Run Docker Container Individually
+```bash
+# Build image
+docker build -t crm-party-service:latest .
+
+# Run container (connecting to host or external Postgres)
+docker run -p 8080:8080 \
+  -e DATABASE_URL="postgres://postgres:postgres@host.docker.internal:5432/party?sslmode=disable" \
+  -e ENV="production" \
+  crm-party-service:latest
+```
+
+#### Option C: Local Development with Standalone Postgres
+```bash
+# Start PostgreSQL database only
+docker compose up -d postgres
+
+# Start party service locally
 go run cmd/service/main.go
 ```
 

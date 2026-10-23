@@ -1,19 +1,48 @@
 services:
   postgres:
-    image: postgres:16
-    container_name: party-service-postgres
+    image: postgres:16-alpine
+    container_name: party-postgres
     restart: unless-stopped
-
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: party
-
     ports:
       - "5432:5432"
-
     volumes:
       - party_postgres_data:/var/lib/postgresql/data
+      - ./db/migrations/000001_create_party_schema.up.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d party"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - party_network
+
+  party-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: party-service
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/party?sslmode=disable"
+      ENV: "development"
+      SHUTDOWN_TIMEOUT_SECONDS: "10"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - party_network
 
 volumes:
   party_postgres_data:
+    driver: local
+
+networks:
+  party_network:
+    driver: bridge
