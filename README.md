@@ -49,6 +49,7 @@ crm_party_service/
 ├── monitoring/               # Observability infrastructure
 │   ├── prometheus/           # Prometheus scrape configuration
 │   └── grafana/              # Pre-provisioned datasources & Party Service dashboard
+├── postman/                  # Postman collection & environment for API testing
 └── test/api/                 # Dedicated black-box E2E integration test suite
 ```
 
@@ -243,6 +244,21 @@ make docker-monitoring
 | `GET` | `/api/v1/parties/:party_id/notes` | List chronological CRM notes |
 | `GET` | `/api/v1/notes/:note_id` | Get note by ID |
 | `DELETE` | `/api/v1/notes/:note_id` | Delete note |
+
+---
+
+## 📮 API Testing with Postman
+
+A complete Postman collection with 50 automated tests and an environment file is included in the [`postman/`](file:///home/yadu/project/Grp/crm_party_servic/postman) directory:
+
+* [`postman/CRM_Party_Service.postman_collection.json`](file:///home/yadu/project/Grp/crm_party_servic/postman/CRM_Party_Service.postman_collection.json): Full collection with test assertions, pre-configured payloads, and automatic variable chaining.
+* [`postman/CRM_Party_Service.postman_environment.json`](file:///home/yadu/project/Grp/crm_party_servic/postman/CRM_Party_Service.postman_environment.json): Local environment configuration (`baseUrl`: `http://localhost:8080`).
+
+### Quick Start with Postman:
+1. Open **Postman** and click **Import**.
+2. Select both files inside the `postman/` directory.
+3. In the top-right corner, choose the **CRM Party Service - Local** environment.
+4. Execute individual requests or use Postman's **Run collection** to run all 50 tests in sequence. Dynamic IDs (`party_id`, `customer_id`, etc.) are captured and propagated automatically between requests.
 
 ---
 
