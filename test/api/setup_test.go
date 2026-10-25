@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/group-project/crm_party_service/internal/api"
 	"github.com/group-project/crm_party_service/internal/db"
 	httpHandler "github.com/group-project/crm_party_service/internal/handler/http"
 	"github.com/group-project/crm_party_service/internal/service"
@@ -937,7 +938,7 @@ func setupTestApp() (*fiber.App, *inMemoryStore) {
 
 	app := fiber.New()
 
-	httpHandler.RegisterRoutes(app, httpHandler.Handlers{
+	api.RegisterRoutes(app, api.Handlers{
 		Party:        partyHandler,
 		Organization: organizationHandler,
 		Individual:   individualHandler,

@@ -21,6 +21,32 @@ This service implements Martin Fowler's **Party Archetype Pattern**:
   * `party_contact_persons`: Key account managers, executives, and points of contact.
   * `party_notes`: CRM interaction and chronological activity logs.
 
+### 📁 Clean Architecture Directory Layout
+```
+crm_party_service/
+├── cmd/service/main.go       # Composition root, DB pool, router execution, graceful shutdown
+├── internal/
+│   ├── api/                  # Categorized API routing & HTTP middleware pipeline
+│   │   ├── router.go         # Central route registration
+│   │   ├── middleware.go     # Fiber middlewares (recover, requestid, logger, cors)
+│   │   ├── health_routes.go  # Health & status endpoints
+│   │   ├── party_routes.go   # Parties & 360 overview routes
+│   │   ├── customer_routes.go# Customers, composite onboarding, user accounts
+│   │   ├── supplier_routes.go# Suppliers, composite onboarding, vendor accounts
+│   │   ├── organization_routes.go # B2B profile routes
+│   │   ├── individual_routes.go   # B2C profile routes
+│   │   ├── address_routes.go # Address management routes
+│   │   ├── contact_routes.go # Contacts & stakeholder routes
+│   │   └── note_routes.go    # CRM interaction note routes
+│   ├── handler/http/         # Primary HTTP adapters (Fiber handlers & DTOs)
+│   ├── service/              # Use cases & business logic
+│   ├── repository/           # Secondary data access ports & PostgreSQL implementations
+│   ├── domain/               # Core entities, value objects, and domain invariants
+│   ├── db/                   # sqlc generated queries & models
+│   └── config/               # Environment configuration loader
+└── test/api/                 # Dedicated black-box E2E integration test suite
+```
+
 ---
 
 ## 🚀 Getting Started

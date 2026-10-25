@@ -9,12 +9,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/group-project/crm_party_service/internal/api"
 	"github.com/group-project/crm_party_service/internal/config"
 	"github.com/group-project/crm_party_service/internal/db"
 	httpHandler "github.com/group-project/crm_party_service/internal/handler/http"
@@ -113,23 +110,10 @@ func main() {
 	})
 
 	// Middlewares
-	app.Use(recover.New())
-	app.Use(requestid.New())
-	app.Use(logger.New(logger.Config{
-		Format: "[${time}] ${status} - ${latency} ${method} ${path}\n",
-	}))
-	app.Use(cors.New())
+	api.SetupMiddlewares(app)
 
-	// Health check
-	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"status": "UP",
-			"time":   time.Now().UTC().Format(time.RFC3339),
-		})
-	})
-
-	// Register Clean Architecture routes
-	httpHandler.RegisterRoutes(app, httpHandler.Handlers{
+	// Register Categorized API Routes
+	api.RegisterRoutes(app, api.Handlers{
 		Party:        partyHandler,
 		Organization: organizationHandler,
 		Individual:   individualHandler,
