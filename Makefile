@@ -142,6 +142,13 @@ docker-db: ## Start only PostgreSQL database container
 	@$(DOCKER_COMPOSE) up -d postgres
 	@echo -e "$(GREEN)[✓] PostgreSQL is running on port 5432$(RESET)"
 
+.PHONY: docker-monitoring
+docker-monitoring: ## Start Prometheus and Grafana monitoring stack
+	@echo -e "$(CYAN)[*] Starting Prometheus (9090) and Grafana (3000)...$(RESET)"
+	@$(DOCKER_COMPOSE) up -d prometheus grafana
+	@echo -e "$(GREEN)[✓] Prometheus available at: http://localhost:9090$(RESET)"
+	@echo -e "$(GREEN)[✓] Grafana available at:    http://localhost:3000 (admin/admin)$(RESET)"
+
 .PHONY: docker-logs
 docker-logs: ## Follow live logs from Docker Compose containers
 	@$(DOCKER_COMPOSE) logs -f

@@ -11,6 +11,7 @@ type Config struct {
 	Port            string
 	DatabaseURL     string
 	Environment     string
+	LogLevel        string
 	ShutdownTimeout time.Duration
 }
 
@@ -26,6 +27,7 @@ func Load() *Config {
 	)
 
 	environment := getEnv("ENV", "development")
+	logLevel := getEnv("LOG_LEVEL", "INFO")
 
 	shutdownTimeoutSecondsStr := getEnv("SHUTDOWN_TIMEOUT_SECONDS", "10")
 	timeoutSec, err := strconv.Atoi(shutdownTimeoutSecondsStr)
@@ -37,6 +39,7 @@ func Load() *Config {
 		Port:            port,
 		DatabaseURL:     databaseURL,
 		Environment:     environment,
+		LogLevel:        logLevel,
 		ShutdownTimeout: time.Duration(timeoutSec) * time.Second,
 	}
 }

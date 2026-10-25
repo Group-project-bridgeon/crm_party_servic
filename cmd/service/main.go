@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,6 +15,7 @@ import (
 	"github.com/group-project/crm_party_service/internal/config"
 	"github.com/group-project/crm_party_service/internal/db"
 	httpHandler "github.com/group-project/crm_party_service/internal/handler/http"
+	"github.com/group-project/crm_party_service/internal/logger"
 	"github.com/group-project/crm_party_service/internal/repository"
 	"github.com/group-project/crm_party_service/internal/service"
 )
@@ -23,14 +24,29 @@ func main() {
 	cfg := config.Load()
 	ctx := context.Background()
 
+	// Initialize structured slog logger
+	logger.Init(logger.Config{
+		Environment: cfg.Environment,
+		Level:       cfg.LogLevel,
+		ServiceName: "crm_party_service",
+	})
+
+	slog.Info("starting crm party service",
+		"env", cfg.Environment,
+		"port", cfg.Port,
+		"log_level", cfg.LogLevel,
+	)
+
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("failed to create database pool: %v", err)
+		slog.Error("failed to create database pool", "error", err)
+		os.Exit(1)
 	}
 	defer pool.Close()
 
 	if err := pool.Ping(ctx); err != nil {
-		log.Fatalf("failed to connect to database: %v", err)
+		slog.Error("failed to connect to database", "error", err)
+		os.Exit(1)
 	}
 
 	queries := db.New(pool)
@@ -130,7 +146,7 @@ func main() {
 
 	// Start server in background goroutine
 	go func() {
-		log.Printf("party service running on port %s (env: %s)", cfg.Port, cfg.Environment)
+		slog.Info("party service http server listening", "port", cfg.Port, "env", cfg.Environment)
 		if err := app.Listen(cfg.Port); err != nil {
 			serverErrors <- err
 		}
@@ -143,23 +159,24 @@ func main() {
 	// Block until either a fatal server error or an OS termination signal
 	select {
 	case err := <-serverErrors:
-		log.Fatalf("server terminated unexpectedly: %v", err)
+		slog.Error("server terminated unexpectedly", "error", err)
+		os.Exit(1)
 
 	case sig := <-shutdownChan:
-		log.Printf("received signal '%s', initiating graceful shutdown...", sig)
+		slog.Info("received termination signal, initiating graceful shutdown", "signal", sig.String())
 
 		// 1. Gracefully shutdown Fiber HTTP server (draining in-flight requests)
 		if err := app.ShutdownWithTimeout(cfg.ShutdownTimeout); err != nil {
-			log.Printf("error during server shutdown: %v", err)
+			slog.Error("error during http server shutdown", "error", err)
 		} else {
-			log.Println("HTTP server closed gracefully")
+			slog.Info("http server closed gracefully")
 		}
 
 		// 2. Close PostgreSQL connection pool cleanly
-		log.Println("closing database connection pool...")
+		slog.Info("closing database connection pool")
 		pool.Close()
-		log.Println("database pool closed successfully")
+		slog.Info("database pool closed successfully")
 
-		log.Println("graceful shutdown completed successfully")
+		slog.Info("graceful shutdown completed successfully")
 	}
 }

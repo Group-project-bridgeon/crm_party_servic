@@ -28,8 +28,8 @@ crm_party_service/
 ├── internal/
 │   ├── api/                  # Categorized API routing & HTTP middleware pipeline
 │   │   ├── router.go         # Central route registration
-│   │   ├── middleware.go     # Fiber middlewares (recover, requestid, logger, cors)
-│   │   ├── health_routes.go  # Health & status endpoints
+│   │   ├── middleware.go     # Fiber middlewares (recover, requestid, slog, metrics, cors)
+│   │   ├── health_routes.go  # Health (/health) & Prometheus metrics (/metrics) endpoints
 │   │   ├── party_routes.go   # Parties & 360 overview routes
 │   │   ├── customer_routes.go# Customers, composite onboarding, user accounts
 │   │   ├── supplier_routes.go# Suppliers, composite onboarding, vendor accounts
@@ -38,12 +38,17 @@ crm_party_service/
 │   │   ├── address_routes.go # Address management routes
 │   │   ├── contact_routes.go # Contacts & stakeholder routes
 │   │   └── note_routes.go    # CRM interaction note routes
+│   ├── logger/               # Enterprise log/slog structured logger & Fiber middleware
+│   ├── metrics/              # Prometheus RED metrics collectors (RPS, Latency, In-Flight)
 │   ├── handler/http/         # Primary HTTP adapters (Fiber handlers & DTOs)
 │   ├── service/              # Use cases & business logic
 │   ├── repository/           # Secondary data access ports & PostgreSQL implementations
 │   ├── domain/               # Core entities, value objects, and domain invariants
 │   ├── db/                   # sqlc generated queries & models
 │   └── config/               # Environment configuration loader
+├── monitoring/               # Observability infrastructure
+│   ├── prometheus/           # Prometheus scrape configuration
+│   └── grafana/              # Pre-provisioned datasources & Party Service dashboard
 └── test/api/                 # Dedicated black-box E2E integration test suite
 ```
 
@@ -62,7 +67,8 @@ crm_party_service/
 | :--- | :--- | :--- |
 | `PORT` | HTTP server listening port | `:8080` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://postgres:postgres@localhost:5432/party?sslmode=disable` |
-| `ENV` | Environment name (`development`, `production`) | `development` |
+| `ENV` | Environment name (`development`, `production`, `staging`) | `development` |
+| `LOG_LEVEL` | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) | `INFO` |
 | `SHUTDOWN_TIMEOUT_SECONDS` | Maximum time to wait for in-flight requests to complete during shutdown | `10` |
 
 ### 3. Running with Docker & Docker Compose
@@ -98,20 +104,59 @@ docker run -p 8080:8080 \
 #### Option C: Local Development with Standalone Postgres
 ```bash
 # Start PostgreSQL database only
-docker compose up -d postgres
+make docker-db
 
 # Start party service locally
-go run cmd/service/main.go
+make run
+```
+
+---
+
+## 📊 Observability, Logging & Monitoring
+
+The service incorporates production-grade telemetry conforming to cloud-native microservice standards:
+
+### 1. Structured Logging (`log/slog`)
+* **Production/Staging**: Emits structured JSON logs containing `timestamp`, `level`, `service`, `env`, `request_id`, `route`, `latency_ms`, and `ip`. Seamlessly ingestible by Grafana Loki, Datadog, AWS CloudWatch, or ELK.
+* **Development**: Colorized, human-readable text logs with source code file/line references.
+* **Correlation**: Injects `request_id` from Fiber's `requestid` middleware into every log entry for tracing across distributed services.
+* **Smart Noise Reduction**: High-frequency scrape requests (`/health`, `/metrics`) are logged at `DEBUG` level to prevent log pollution.
+
+### 2. Prometheus Metrics (`/metrics`)
+Standard RED (Rate, Errors, Duration) metrics collected automatically:
+* `crm_party_service_http_requests_total`: Counter partitioned by `method`, `path` (route template), and HTTP `status`.
+* `crm_party_service_http_request_duration_seconds`: High-resolution histogram tracking request latency percentiles (p50, p95, p99).
+* `crm_party_service_http_requests_in_flight`: Gauge tracking active concurrent HTTP connections.
+* **Go Runtime Telemetry**: Memory allocation (Heap, Stack, Sys), GC pause duration, and active goroutines.
+
+### 3. Grafana Dashboard
+A pre-provisioned Grafana dashboard is included at `monitoring/grafana/dashboards/crm_party_service.json`:
+* **URL**: [http://localhost:3000](http://localhost:3000)
+* **Credentials**: `admin` / `admin`
+* **Pre-configured Panels**:
+  * Realtime Service Health & Status (UP/DOWN)
+  * In-Flight Requests Gauge
+  * 5xx Error Rate Percentage (%)
+  * Request Throughput by Status Code (2xx, 4xx, 5xx)
+  * p50 / p95 / p99 Latency Curves
+  * Go Goroutines & OS Thread Counts
+  * Go Heap Memory Consumption
+
+To spin up the monitoring stack:
+```bash
+make docker-monitoring
+# or: docker compose up -d prometheus grafana
 ```
 
 ---
 
 ## 📡 API Reference
 
-### Health Check
+### Health & Telemetry
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/health` | Service health status |
+| `GET` | `/metrics` | Prometheus scrape endpoint (RED metrics & Go runtime) |
 
 ### 1. Parties
 | Method | Endpoint | Description |

@@ -28,6 +28,7 @@ func TestRegisterRoutes_AllCategoriesMounted(t *testing.T) {
 
 	expectedPaths := []string{
 		"/health",
+		"/metrics",
 		"/api/v1/parties",
 		"/api/v1/parties/:id",
 		"/api/v1/parties/:id/status",
