@@ -24,4 +24,3 @@ type OrganizationRepository interface {
 		params db.UpdateOrganizationParams,
 	) (db.Organization, error)
 }
-

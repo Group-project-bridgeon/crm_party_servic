@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-
 type mockPartyRepository struct {
 	createPartyCalled bool
 	createPartyParams db.CreatePartyParams
@@ -34,7 +33,6 @@ type mockPartyRepository struct {
 		params db.UpdatePartyStatusParams,
 	) (db.Party, error)
 }
-
 
 func (m *mockPartyRepository) ListParties(
 	ctx context.Context,
@@ -363,4 +361,3 @@ func TestUpdatePartyStatus_NotFound(t *testing.T) {
 		t.Fatalf("expected ErrPartyNotFound, got %v", err)
 	}
 }
-

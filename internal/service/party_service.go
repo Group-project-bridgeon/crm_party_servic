@@ -154,4 +154,3 @@ func (s *PartyService) UpdatePartyStatus(
 
 	return s.repository.UpdatePartyStatus(ctx, params)
 }
-

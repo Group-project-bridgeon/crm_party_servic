@@ -19,4 +19,3 @@ type PartyRepository interface {
 
 	UpdatePartyStatus(ctx context.Context, params db.UpdatePartyStatusParams) (db.Party, error)
 }
-

@@ -21,4 +21,3 @@ type UpdatePartyInput struct {
 	TaxNumber   *string
 	Notes       *string
 }
-

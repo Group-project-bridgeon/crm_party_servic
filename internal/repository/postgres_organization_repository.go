@@ -40,4 +40,3 @@ func (r *postgresOrganizationRepository) UpdateOrganization(
 ) (db.Organization, error) {
 	return r.queries.UpdateOrganization(ctx, params)
 }
-

@@ -52,4 +52,3 @@ func (r *postgresPartyRepository) UpdatePartyStatus(
 ) (db.Party, error) {
 	return r.queries.UpdatePartyStatus(ctx, params)
 }
-

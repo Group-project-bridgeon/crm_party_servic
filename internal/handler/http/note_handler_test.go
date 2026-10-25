@@ -17,10 +17,10 @@ import (
 )
 
 type mockNoteService struct {
-	createNoteFunc       func(ctx context.Context, input domain.CreateNoteInput) (db.PartyNote, error)
-	getNoteByIDFunc      func(ctx context.Context, id pgtype.UUID) (db.PartyNote, error)
+	createNoteFunc         func(ctx context.Context, input domain.CreateNoteInput) (db.PartyNote, error)
+	getNoteByIDFunc        func(ctx context.Context, id pgtype.UUID) (db.PartyNote, error)
 	listNotesByPartyIDFunc func(ctx context.Context, partyID pgtype.UUID) ([]db.PartyNote, error)
-	deleteNoteFunc       func(ctx context.Context, id pgtype.UUID) error
+	deleteNoteFunc         func(ctx context.Context, id pgtype.UUID) error
 }
 
 func (m *mockNoteService) CreateNote(ctx context.Context, input domain.CreateNoteInput) (db.PartyNote, error) {

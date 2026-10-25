@@ -6,31 +6,29 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/group-project/crm_party_service/internal/db"
 	"github.com/group-project/crm_party_service/internal/domain"
 	"github.com/group-project/crm_party_service/internal/handler/http/dto"
 	"github.com/group-project/crm_party_service/internal/service"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type OrganizationService interface {
-    CreateOrganization(
-        ctx context.Context,
-        input domain.CreateOrganizationInput,
-    ) (db.Organization, error)
+	CreateOrganization(
+		ctx context.Context,
+		input domain.CreateOrganizationInput,
+	) (db.Organization, error)
 
-    GetOrganizationByPartyID(
-        ctx context.Context,
-        partyID pgtype.UUID,
-    ) (db.Organization, error)
+	GetOrganizationByPartyID(
+		ctx context.Context,
+		partyID pgtype.UUID,
+	) (db.Organization, error)
 
-    UpdateOrganization(
-        ctx context.Context,
-        input domain.UpdateOrganizationInput,
-    ) (db.Organization, error)
+	UpdateOrganization(
+		ctx context.Context,
+		input domain.UpdateOrganizationInput,
+	) (db.Organization, error)
 }
-
-
 
 type OrganizationHandler struct {
 	service OrganizationService
@@ -136,37 +134,36 @@ func toOrganizationResponse(
 	}
 }
 
-
 func (h *OrganizationHandler) GetOrganizationByPartyID(c *fiber.Ctx) error {
-    var partyID pgtype.UUID
+	var partyID pgtype.UUID
 
-    if err := partyID.Scan(c.Params("party_id")); err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "invalid party id",
-        })
-    }
+	if err := partyID.Scan(c.Params("party_id")); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid party id",
+		})
+	}
 
-    organization, err := h.service.GetOrganizationByPartyID(
-        c.Context(),
-        partyID,
-    )
-    if err != nil {
-        switch {
-        case errors.Is(err, service.ErrOrganizationNotFound):
-            return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-                "error": "organization not found",
-            })
+	organization, err := h.service.GetOrganizationByPartyID(
+		c.Context(),
+		partyID,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrOrganizationNotFound):
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "organization not found",
+			})
 
-        default:
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-                "error": "internal server error",
-            })
-        }
-    }
+		default:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "internal server error",
+			})
+		}
+	}
 
-    return c.Status(fiber.StatusOK).JSON(
-        toOrganizationResponse(organization),
-    )
+	return c.Status(fiber.StatusOK).JSON(
+		toOrganizationResponse(organization),
+	)
 }
 
 func (h *OrganizationHandler) UpdateOrganization(c *fiber.Ctx) error {

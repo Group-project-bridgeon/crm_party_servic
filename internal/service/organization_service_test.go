@@ -21,7 +21,6 @@ type mockOrganizationRepository struct {
 	updateOrganizationFunc       func(ctx context.Context, params db.UpdateOrganizationParams) (db.Organization, error)
 }
 
-
 func (m *mockOrganizationRepository) CreateOrganization(
 	ctx context.Context,
 	params db.CreateOrganizationParams,
@@ -72,7 +71,6 @@ func (m *mockOrganizationRepository) UpdateOrganization(
 		Description:        params.Description,
 	}, nil
 }
-
 
 func TestCreateOrganization_ValidOrganization(t *testing.T) {
 	ctx := context.Background()
@@ -788,4 +786,3 @@ func TestUpdateOrganization_InvalidFoundedDate(t *testing.T) {
 		t.Fatalf("expected ErrInvalidFoundedDate, got %v", err)
 	}
 }
-

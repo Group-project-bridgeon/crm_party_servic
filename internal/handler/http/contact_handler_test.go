@@ -17,17 +17,17 @@ import (
 )
 
 type mockContactService struct {
-	createContactFunc       func(ctx context.Context, input domain.CreateContactInput) (db.PartyContact, error)
-	getContactByIDFunc      func(ctx context.Context, id pgtype.UUID) (db.PartyContact, error)
+	createContactFunc         func(ctx context.Context, input domain.CreateContactInput) (db.PartyContact, error)
+	getContactByIDFunc        func(ctx context.Context, id pgtype.UUID) (db.PartyContact, error)
 	listContactsByPartyIDFunc func(ctx context.Context, partyID pgtype.UUID, contactType *string) ([]db.PartyContact, error)
-	updateContactFunc       func(ctx context.Context, input domain.UpdateContactInput) (db.PartyContact, error)
-	deleteContactFunc       func(ctx context.Context, id pgtype.UUID) error
+	updateContactFunc         func(ctx context.Context, input domain.UpdateContactInput) (db.PartyContact, error)
+	deleteContactFunc         func(ctx context.Context, id pgtype.UUID) error
 
-	createContactPersonFunc       func(ctx context.Context, input domain.CreateContactPersonInput) (db.PartyContactPerson, error)
-	getContactPersonByIDFunc      func(ctx context.Context, id pgtype.UUID) (db.PartyContactPerson, error)
+	createContactPersonFunc         func(ctx context.Context, input domain.CreateContactPersonInput) (db.PartyContactPerson, error)
+	getContactPersonByIDFunc        func(ctx context.Context, id pgtype.UUID) (db.PartyContactPerson, error)
 	listContactPersonsByPartyIDFunc func(ctx context.Context, partyID pgtype.UUID) ([]db.PartyContactPerson, error)
-	updateContactPersonFunc       func(ctx context.Context, input domain.UpdateContactPersonInput) (db.PartyContactPerson, error)
-	deleteContactPersonFunc       func(ctx context.Context, id pgtype.UUID) error
+	updateContactPersonFunc         func(ctx context.Context, input domain.UpdateContactPersonInput) (db.PartyContactPerson, error)
+	deleteContactPersonFunc         func(ctx context.Context, id pgtype.UUID) error
 }
 
 func (m *mockContactService) CreateContact(ctx context.Context, input domain.CreateContactInput) (db.PartyContact, error) {

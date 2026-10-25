@@ -19,4 +19,3 @@ type UpdateOrganizationInput struct {
 	EmployeeCount      *int
 	Description        *string
 }
-

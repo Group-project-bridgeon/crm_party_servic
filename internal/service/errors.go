@@ -45,13 +45,13 @@ var (
 	ErrSupplierUserAccountNotFound      = errors.New("supplier user account not found")
 
 	// Address errors
-	ErrAddressNotFound     = errors.New("party address not found")
-	ErrInvalidAddressType  = errors.New("invalid address type")
-	ErrEmptyAddressLine1   = errors.New("address line 1 is required")
-	ErrEmptyCity           = errors.New("city is required")
-	ErrInvalidCountryCode  = errors.New("country code must be a 2-letter ISO code")
-	ErrInvalidCoordinates  = errors.New("invalid latitude or longitude")
-	ErrInvalidAddressID    = errors.New("invalid address id")
+	ErrAddressNotFound    = errors.New("party address not found")
+	ErrInvalidAddressType = errors.New("invalid address type")
+	ErrEmptyAddressLine1  = errors.New("address line 1 is required")
+	ErrEmptyCity          = errors.New("city is required")
+	ErrInvalidCountryCode = errors.New("country code must be a 2-letter ISO code")
+	ErrInvalidCoordinates = errors.New("invalid latitude or longitude")
+	ErrInvalidAddressID   = errors.New("invalid address id")
 
 	// Contact errors
 	ErrContactNotFound    = errors.New("party contact not found")
@@ -64,10 +64,7 @@ var (
 	ErrInvalidContactPersonID = errors.New("invalid contact person id")
 
 	// Note errors
-	ErrNoteNotFound      = errors.New("party note not found")
-	ErrEmptyNoteContent  = errors.New("note content cannot be empty")
-	ErrInvalidNoteID     = errors.New("invalid note id")
+	ErrNoteNotFound     = errors.New("party note not found")
+	ErrEmptyNoteContent = errors.New("note content cannot be empty")
+	ErrInvalidNoteID    = errors.New("invalid note id")
 )
-
-
-

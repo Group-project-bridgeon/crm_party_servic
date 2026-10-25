@@ -114,21 +114,20 @@ func (s *OrganizationService) CreateOrganization(
 	return s.organizationRepository.CreateOrganization(ctx, params)
 }
 
-
 func (s *OrganizationService) GetOrganizationByPartyID(
-    ctx context.Context,
-    partyID pgtype.UUID,
+	ctx context.Context,
+	partyID pgtype.UUID,
 ) (db.Organization, error) {
-    organization, err := s.organizationRepository.GetOrganizationByPartyID(ctx, partyID)
-    if err != nil {
-        if errors.Is(err, pgx.ErrNoRows) {
-            return db.Organization{}, ErrOrganizationNotFound
-        }
+	organization, err := s.organizationRepository.GetOrganizationByPartyID(ctx, partyID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return db.Organization{}, ErrOrganizationNotFound
+		}
 
-        return db.Organization{}, err
-    }
+		return db.Organization{}, err
+	}
 
-    return organization, nil
+	return organization, nil
 }
 
 func (s *OrganizationService) UpdateOrganization(

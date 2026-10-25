@@ -53,8 +53,6 @@ func (m *mockOrganizationService) UpdateOrganization(
 	return db.Organization{}, nil
 }
 
-
-
 func TestCreateOrganization_Success(t *testing.T) {
 	app := fiber.New()
 
@@ -638,5 +636,3 @@ func TestGetOrganizationByPartyID_InternalServerError(t *testing.T) {
 		t.Fatalf("expected status 500, got %d", resp.StatusCode)
 	}
 }
-
-

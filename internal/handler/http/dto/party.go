@@ -45,4 +45,3 @@ type UpdatePartyRequest struct {
 type UpdatePartyStatusRequest struct {
 	IsActive bool `json:"is_active"`
 }
-

@@ -31,4 +31,3 @@ type UpdateOrganizationRequest struct {
 	EmployeeCount      *int    `json:"employee_count"`
 	Description        *string `json:"description"`
 }
-

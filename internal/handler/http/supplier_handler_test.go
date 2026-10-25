@@ -24,7 +24,7 @@ type mockSupplierService struct {
 	listSuppliersFunc                   func(ctx context.Context, params db.ListSuppliersParams) ([]db.Supplier, error)
 	updateSupplierFunc                  func(ctx context.Context, input domain.UpdateSupplierInput) (db.Supplier, error)
 	createSupplierUserAccountFunc       func(ctx context.Context, input domain.CreateSupplierUserAccountInput) (db.SupplierUserAccount, error)
-	listSupplierUserAccountsFunc       func(ctx context.Context, supplierID pgtype.UUID) ([]db.SupplierUserAccount, error)
+	listSupplierUserAccountsFunc        func(ctx context.Context, supplierID pgtype.UUID) ([]db.SupplierUserAccount, error)
 	updateSupplierUserAccountStatusFunc func(ctx context.Context, id pgtype.UUID, isActive bool) (db.SupplierUserAccount, error)
 }
 

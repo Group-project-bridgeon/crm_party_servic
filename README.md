@@ -201,6 +201,49 @@ go run cmd/service/main.go
 
 ---
 
+## 🛠️ Makefile & Developer Commands
+
+A comprehensive [`Makefile`](file:///home/yadu/project/Grp/crm_party_servic/Makefile) is provided to streamline development, testing, database code generation, and container lifecycle:
+
+```bash
+# View available Makefile targets
+make help
+
+# Build statically-linked binary to bin/party-service
+make build
+
+# Run service locally
+make run
+
+# Run all unit and E2E integration tests
+make test
+
+# Run unit tests only
+make test-unit
+
+# Run E2E API integration tests only
+make test-e2e
+
+# Generate test coverage report (generates coverage.html)
+make test-coverage
+
+# Code formatting & static analysis
+make fmt
+make vet
+
+# Regenerate SQL queries via sqlc
+make sqlc
+
+# Docker Compose shortcuts
+make docker-up    # Build and boot full stack (Postgres + Party Service)
+make docker-db    # Start only PostgreSQL container
+make docker-down  # Stop and remove containers
+make docker-logs  # Stream container logs
+make docker-ps    # View service status
+```
+
+---
+
 ## 🧪 Testing
 
 The test suite follows standard Go architectural conventions:
@@ -209,25 +252,30 @@ The test suite follows standard Go architectural conventions:
 
 Run all tests across the entire repository:
 ```bash
-go test -v ./...
+make test
+# or: go test -v ./...
 ```
 
 Run only the root End-to-End API integration test suite:
 ```bash
-go test -v ./test/api/...
+make test-e2e
+# or: go test -v ./test/api/...
 ```
 
 Run only unit tests:
 ```bash
-go test -v ./internal/...
+make test-unit
+# or: go test -v ./internal/...
 ```
 
 Regenerate SQL queries:
 ```bash
-/home/yadu/go/bin/sqlc generate
+make sqlc
+# or: /home/yadu/go/bin/sqlc generate
 ```
 
 Compile binary:
 ```bash
-go build -o bin/party_service ./cmd/service
+make build
+# or: go build -o bin/party-service ./cmd/service
 ```

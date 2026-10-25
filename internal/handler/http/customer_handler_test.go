@@ -24,7 +24,7 @@ type mockCustomerService struct {
 	listCustomersFunc                   func(ctx context.Context, params db.ListCustomersParams) ([]db.Customer, error)
 	updateCustomerFunc                  func(ctx context.Context, input domain.UpdateCustomerInput) (db.Customer, error)
 	createCustomerUserAccountFunc       func(ctx context.Context, input domain.CreateCustomerUserAccountInput) (db.CustomerUserAccount, error)
-	listCustomerUserAccountsFunc       func(ctx context.Context, customerID pgtype.UUID) ([]db.CustomerUserAccount, error)
+	listCustomerUserAccountsFunc        func(ctx context.Context, customerID pgtype.UUID) ([]db.CustomerUserAccount, error)
 	updateCustomerUserAccountStatusFunc func(ctx context.Context, id pgtype.UUID, isActive bool) (db.CustomerUserAccount, error)
 }
 

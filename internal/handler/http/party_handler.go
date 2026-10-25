@@ -31,7 +31,6 @@ func NewPartyHandler(service PartyService) *PartyHandler {
 	}
 }
 
-
 func (h *PartyHandler) CreateParty(c *fiber.Ctx) error {
 	var req dto.CreatePartyRequest
 
@@ -302,4 +301,3 @@ func toPartyResponse(party db.Party) dto.PartyResponse {
 
 	return response
 }
-
