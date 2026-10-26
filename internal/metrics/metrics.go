@@ -86,9 +86,9 @@ func (m *Metrics) NewFiberMiddleware() fiber.Handler {
 		duration := time.Since(start).Seconds()
 
 		// Use route template (/api/v1/parties/:id) instead of raw path to avoid cardinality explosion
-		routePath := c.Route().Path
-		if routePath == "" {
-			routePath = path
+		routePath := path
+		if route := c.Route(); route != nil && route.Path != "" {
+			routePath = route.Path
 		}
 
 		status := strconv.Itoa(c.Response().StatusCode())
@@ -108,7 +108,9 @@ func Handler() fiber.Handler {
 
 // HandlerFor returns a Fiber handler for a specific Prometheus gatherer.
 func HandlerFor(gatherer prometheus.Gatherer) fiber.Handler {
-	promHandler := fasthttpadaptor.NewFastHTTPHandler(promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{}))
+	promHandler := fasthttpadaptor.NewFastHTTPHandler(promhttp.HandlerFor(gatherer, promhttp.HandlerOpts{
+		ErrorHandling: promhttp.ContinueOnError,
+	}))
 	return func(c *fiber.Ctx) error {
 		promHandler(c.Context())
 		return nil

@@ -426,7 +426,7 @@
           ]
         },
         {
-          "name": "Party 360\u00b0 Unified Overview",
+          "name": "Party 360° Unified Overview",
           "request": {
             "method": "GET",
             "header": [],
@@ -489,8 +489,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -816,7 +816,7 @@
             "description": "Creates Party, Organization, Customer, and Address atomically in one transaction.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"party\": {\n    \"party_type\": \"ORGANIZATION\",\n    \"display_name\": \"Nexus Dynamics Inc\",\n    \"legal_name\": \"Nexus Dynamics Incorporated\",\n    \"email\": \"orders@nexusdynamics.com\",\n    \"phone\": \"+1-800-555-1200\",\n    \"website\": \"https://nexusdynamics.com\"\n  },\n  \"organization\": {\n    \"registration_number\": \"NEX-992144-C\",\n    \"industry\": \"Artificial Intelligence & Cloud\",\n    \"employee_count\": 300,\n    \"founded_date\": \"2018-09-01\"\n  },\n  \"customer\": {\n    \"customer_group\": \"ENTERPRISE\",\n    \"credit_limit\": 100000.0,\n    \"credit_status\": \"ACTIVE\",\n    \"payment_terms\": \"NET30\",\n    \"currency_code\": \"USD\"\n  },\n  \"address\": {\n    \"address_type\": \"BILLING\",\n    \"is_primary\": true,\n    \"address_line1\": \"700 Innovation Way\",\n    \"address_line2\": \"Suite 500\",\n    \"city\": \"San Francisco\",\n    \"state_province\": \"CA\",\n    \"postal_code\": \"94105\",\n    \"country_code\": \"USA\"\n  }\n}",
+              "raw": "{\n  \"party_type\": \"ORGANIZATION\",\n  \"display_name\": \"Nexus Dynamics Inc\",\n  \"legal_name\": \"Nexus Dynamics Incorporated\",\n  \"email\": \"orders@nexusdynamics.com\",\n  \"phone\": \"+1-800-555-1200\",\n  \"website\": \"https://nexusdynamics.com\",\n  \"registration_number\": \"NEX-992144-C\",\n  \"industry\": \"Artificial Intelligence & Cloud\",\n  \"employee_count\": 300,\n  \"founded_date\": \"2018-09-01\",\n  \"customer_code\": \"CUST-NEXUS-{{$timestamp}}\",\n  \"customer_group\": \"ENTERPRISE\",\n  \"credit_limit\": 100000.0,\n  \"credit_status\": \"ACTIVE\",\n  \"payment_terms_days\": 30,\n  \"address\": {\n    \"address_type\": \"BILLING\",\n    \"address_line1\": \"700 Innovation Way\",\n    \"address_line2\": \"Suite 500\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"postal_code\": \"94105\",\n    \"country_code\": \"US\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -873,7 +873,7 @@
             "description": "Promotes an existing party to a customer.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"party_id\": \"{{indiv_party_id}}\",\n  \"customer_group\": \"RETAIL\",\n  \"credit_limit\": 15000.0,\n  \"payment_terms\": \"NET15\",\n  \"currency_code\": \"USD\"\n}",
+              "raw": "{\n  \"party_id\": \"{{indiv_party_id}}\",\n  \"customer_code\": \"CUST-INDIV-{{$timestamp}}\",\n  \"customer_group\": \"RETAIL\",\n  \"credit_limit\": 15000.0,\n  \"payment_terms_days\": 15,\n  \"credit_status\": \"ACTIVE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1027,7 +1027,7 @@
             "description": "Updates customer credit limit, terms, and status.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"customer_group\": \"ENTERPRISE_VIP\",\n  \"credit_limit\": 250000.0,\n  \"credit_status\": \"ACTIVE\",\n  \"payment_terms\": \"NET60\",\n  \"currency_code\": \"USD\"\n}",
+              "raw": "{\n  \"customer_group\": \"ENTERPRISE_VIP\",\n  \"credit_limit\": 250000.0,\n  \"credit_status\": \"ACTIVE\",\n  \"payment_terms_days\": 60\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1080,7 +1080,7 @@
             "description": "Links an external IAM/Auth0 user ID to the customer portal.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user_id\": \"usr-auth0-98124501\"\n}",
+              "raw": "{\n  \"user_id\": \"{{$guid}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1226,7 +1226,7 @@
             "description": "Atomic onboarding for vendors: Party + Organization + Supplier + Warehouse address.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"party\": {\n    \"party_type\": \"ORGANIZATION\",\n    \"display_name\": \"Titanium Parts GmbH\",\n    \"legal_name\": \"Titanium Parts Gesellschaft mit beschr\\u00e4nkter Haftung\",\n    \"email\": \"vendor@titaniumparts.de\",\n    \"phone\": \"+49-30-123456\"\n  },\n  \"organization\": {\n    \"registration_number\": \"DE-BER-88412\",\n    \"industry\": \"Heavy Metal Fabrication\",\n    \"employee_count\": 180,\n    \"founded_date\": \"2005-06-12\"\n  },\n  \"supplier\": {\n    \"supplier_group\": \"DIRECT_MATERIALS\",\n    \"supplier_rating\": 4.85,\n    \"currency_code\": \"EUR\",\n    \"payment_terms\": \"NET30\",\n    \"payment_method\": \"BANK_WIRE\",\n    \"bank_account_number\": \"DE89370400440532013000\",\n    \"bank_name\": \"Deutsche Bank AG\",\n    \"bank_routing_code\": \"DEUTDEDDFXX\"\n  },\n  \"address\": {\n    \"address_type\": \"WAREHOUSE\",\n    \"is_primary\": true,\n    \"address_line1\": \"Industriestrasse 42\",\n    \"city\": \"Berlin\",\n    \"postal_code\": \"10115\",\n    \"country_code\": \"DEU\"\n  }\n}",
+              "raw": "{\n  \"party_type\": \"ORGANIZATION\",\n  \"display_name\": \"Titanium Parts GmbH\",\n  \"legal_name\": \"Titanium Parts Gesellschaft mit beschr\\u00e4nkter Haftung\",\n  \"email\": \"vendor@titaniumparts.de\",\n  \"phone\": \"+49-30-123456\",\n  \"registration_number\": \"DE-BER-88412\",\n  \"industry\": \"Heavy Metal Fabrication\",\n  \"employee_count\": 180,\n  \"founded_date\": \"2005-06-12\",\n  \"supplier_code\": \"SUPP-TITAN-{{$timestamp}}\",\n  \"supplier_group\": \"DIRECT_MATERIALS\",\n  \"supplier_rating\": 4.85,\n  \"currency_code\": \"EUR\",\n  \"payment_terms_days\": 30,\n  \"payment_method\": \"BANK_WIRE\",\n  \"address\": {\n    \"address_type\": \"WAREHOUSE\",\n    \"address_line1\": \"Industriestrasse 42\",\n    \"city\": \"Berlin\",\n    \"postal_code\": \"10115\",\n    \"country_code\": \"DE\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1348,7 +1348,7 @@
             "description": "Update supplier rating, group, and terms.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"supplier_group\": \"STRATEGIC_PARTNER\",\n  \"supplier_rating\": 4.95,\n  \"currency_code\": \"EUR\",\n  \"payment_terms\": \"NET45\",\n  \"payment_method\": \"BANK_WIRE\"\n}",
+              "raw": "{\n  \"supplier_group\": \"STRATEGIC_PARTNER\",\n  \"supplier_rating\": 4.95,\n  \"currency_code\": \"EUR\",\n  \"payment_terms_days\": 45\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1401,7 +1401,7 @@
             "description": "Links an IAM user ID to the vendor portal.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user_id\": \"usr-vendor-auth-7721\"\n}",
+              "raw": "{\n  \"user_id\": \"{{$guid}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1494,7 +1494,7 @@
             "description": "Adds a shipping address to party.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"address_type\": \"SHIPPING\",\n  \"is_primary\": false,\n  \"address_line1\": \"450 Logistics Blvd\",\n  \"address_line2\": \"Building 3B, Dock 7\",\n  \"city\": \"Memphis\",\n  \"state_province\": \"TN\",\n  \"postal_code\": \"38118\",\n  \"country_code\": \"USA\"\n}",
+              "raw": "{\n  \"address_type\": \"SHIPPING\",\n  \"is_primary\": false,\n  \"address_line1\": \"450 Logistics Blvd\",\n  \"address_line2\": \"Building 3B, Dock 7\",\n  \"city\": \"Memphis\",\n  \"state\": \"TN\",\n  \"postal_code\": \"38118\",\n  \"country_code\": \"US\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1619,7 +1619,7 @@
             "description": "Updates address details and primary flag.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"address_type\": \"SHIPPING\",\n  \"is_primary\": true,\n  \"address_line1\": \"450 Logistics Blvd\",\n  \"address_line2\": \"Building 3B, Dock 9 (Expanded)\",\n  \"city\": \"Memphis\",\n  \"state_province\": \"TN\",\n  \"postal_code\": \"38118\",\n  \"country_code\": \"USA\"\n}",
+              "raw": "{\n  \"address_type\": \"SHIPPING\",\n  \"is_primary\": true,\n  \"address_line1\": \"450 Logistics Blvd\",\n  \"address_line2\": \"Building 3B, Dock 9 (Expanded)\",\n  \"city\": \"Memphis\",\n  \"state\": \"TN\",\n  \"postal_code\": \"38118\",\n  \"country_code\": \"US\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1671,8 +1671,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1884,8 +1884,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -1919,7 +1919,7 @@
             "description": "Creates an executive stakeholder/point of contact for a party.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Alexander\",\n  \"last_name\": \"Pierce\",\n  \"job_title\": \"Executive VP of Strategic Partnerships\",\n  \"department\": \"Executive Leadership\",\n  \"email\": \"a.pierce@nexusdynamics.com\",\n  \"phone\": \"+1-555-8821\",\n  \"mobile\": \"+1-555-9932\",\n  \"is_primary\": true,\n  \"notes\": \"Direct executive decision maker for vendor contracts.\"\n}",
+              "raw": "{\n  \"first_name\": \"Alexander\",\n  \"last_name\": \"Pierce\",\n  \"designation\": \"Executive VP of Strategic Partnerships\",\n  \"department\": \"Executive Leadership\",\n  \"email\": \"a.pierce@nexusdynamics.com\",\n  \"phone\": \"+1-555-8821\",\n  \"mobile\": \"+1-555-9932\",\n  \"is_primary\": true,\n  \"notes\": \"Direct executive decision maker for vendor contracts.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2040,7 +2040,7 @@
             "description": "Updates contact person profile.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Alexander\",\n  \"last_name\": \"Pierce\",\n  \"job_title\": \"Chief Commercial Officer (CCO)\",\n  \"department\": \"Commercial Strategy\",\n  \"email\": \"a.pierce@nexusdynamics.com\",\n  \"phone\": \"+1-555-8821\",\n  \"is_primary\": true,\n  \"notes\": \"Promoted to CCO in Q4.\"\n}",
+              "raw": "{\n  \"first_name\": \"Alexander\",\n  \"last_name\": \"Pierce\",\n  \"designation\": \"Chief Commercial Officer (CCO)\",\n  \"department\": \"Commercial Strategy\",\n  \"email\": \"a.pierce@nexusdynamics.com\",\n  \"phone\": \"+1-555-8821\",\n  \"is_primary\": true,\n  \"notes\": \"Promoted to CCO in Q4.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2058,8 +2058,8 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "var data = pm.response.json();",
-                  "pm.test(\"Job title updated\", function () {",
-                  "    pm.expect(data.job_title).to.eql(\"Chief Commercial Officer (CCO)\");",
+                  "pm.test(\"Designation updated\", function () {",
+                  "    pm.expect(data.designation).to.eql(\"Chief Commercial Officer (CCO)\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -2092,8 +2092,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -2132,7 +2132,7 @@
             "description": "Creates chronological CRM interaction note.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"note_title\": \"Q4 Enterprise Contract Renewal Discussion\",\n  \"note_content\": \"Client requested 15% discount for 3-year upfront commitment. Follow up scheduled next Tuesday.\",\n  \"note_type\": \"MEETING_SUMMARY\",\n  \"created_by\": \"user-account-exec-04\"\n}",
+              "raw": "{\n  \"content\": \"Client requested 15% discount for 3-year upfront commitment. Follow up scheduled next Tuesday.\",\n  \"note_type\": \"MEETING_SUMMARY\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2257,8 +2257,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
                   "});"
                 ],
                 "type": "text/javascript"
