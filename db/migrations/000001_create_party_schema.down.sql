@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS party_notes;
+DROP TABLE IF EXISTS supplier_user_accounts;
+DROP TABLE IF EXISTS customer_user_accounts;
+DROP TABLE IF EXISTS suppliers;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS party_contact_persons;
+DROP TABLE IF EXISTS party_addresses;
+DROP TABLE IF EXISTS party_contacts;
+DROP TABLE IF EXISTS individuals;
+DROP TABLE IF EXISTS organizations;
+DROP TABLE IF EXISTS parties;

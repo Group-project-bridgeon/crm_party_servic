@@ -1,0 +1,14 @@
+.git
+.gitignore
+.env
+.env.*
+*.md
+*.swp
+*.swo
+.idea/
+.vscode/
+bin/
+service
+*.test
+*.out
+test/

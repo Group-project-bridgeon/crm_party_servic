@@ -1,0 +1,2272 @@
+{
+  "info": {
+    "_postman_id": "c1f73b80-1a22-4e89-b5f7-9c98e4d3a1f1",
+    "name": "CRM Party Service API",
+    "description": "Comprehensive API testing suite for CRM Party Service covering Parties, Organizations, Individuals, Customers, Suppliers, Addresses, Contacts, Notes, and Telemetry.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "party_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "indiv_party_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "supplier_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_account_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "supplier_account_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "address_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "contact_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "person_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "note_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00. Observability & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Check service health status."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Service status is UP\", function () {",
+                  "    pm.expect(data.status).to.eql(\"UP\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "metrics"
+              ]
+            },
+            "description": "Scrape Prometheus metrics."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Body contains go metrics\", function () {",
+                  "    pm.expect(pm.response.text()).to.include(\"go_goroutines\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01. Parties",
+      "item": [
+        {
+          "name": "Create Party (Organization)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties"
+              ]
+            },
+            "description": "Creates an Organization party and stores party_id in variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"party_type\": \"ORGANIZATION\",\n  \"display_name\": \"Acme Global Industries Ltd\",\n  \"legal_name\": \"Acme Global Industries Limited\",\n  \"email\": \"contact@acmeglobal.com\",\n  \"phone\": \"+1-555-0199\",\n  \"website\": \"https://acmeglobal.com\",\n  \"tax_number\": \"TAX-US-992144\",\n  \"notes\": \"Key enterprise enterprise account.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"party_id\", data.id);",
+                  "}",
+                  "pm.test(\"Party type is ORGANIZATION\", function () {",
+                  "    pm.expect(data.party_type).to.eql(\"ORGANIZATION\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Party (Individual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties"
+              ]
+            },
+            "description": "Creates an Individual party and stores indiv_party_id.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"party_type\": \"INDIVIDUAL\",\n  \"display_name\": \"Dr. Sarah Connor\",\n  \"legal_name\": \"Sarah Jean Connor\",\n  \"email\": \"sarah.connor@example.com\",\n  \"phone\": \"+1-555-0812\",\n  \"notes\": \"Individual consultant.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"indiv_party_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Parties (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties?limit=10&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties?limit=10&offset=0"
+              ]
+            },
+            "description": "Lists parties with query parameters."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Returns party list\", function () {",
+                  "    pm.expect(Array.isArray(data.data)).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Party by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}"
+              ]
+            },
+            "description": "Retrieve party details by ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Matches party_id\", function () {",
+                  "    pm.expect(data.id).to.eql(pm.collectionVariables.get(\"party_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Party",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}"
+              ]
+            },
+            "description": "Updates an existing party.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Acme Global Holdings Ltd\",\n  \"legal_name\": \"Acme Global Holdings Limited\",\n  \"email\": \"info@acmeholdings.com\",\n  \"phone\": \"+1-555-0100\",\n  \"website\": \"https://acmeholdings.com\",\n  \"tax_number\": \"TAX-US-992144-UPD\",\n  \"notes\": \"Updated corporate structure.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Updated display_name\", function () {",
+                  "    pm.expect(data.display_name).to.eql(\"Acme Global Holdings Ltd\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Toggle Party Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "status"
+              ]
+            },
+            "description": "Activate or deactivate a party.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Status is active\", function () {",
+                  "    pm.expect(data.is_active).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Party 360° Unified Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/360",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "360"
+              ]
+            },
+            "description": "Aggregates Party, Profiles, Customer, Supplier, Addresses, and Contacts in one response."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Party 360 contains party\", function () {",
+                  "    pm.expect(data.party).to.not.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivate Party (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}"
+              ]
+            },
+            "description": "Soft-deletes party by marking inactive."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02. Organization Profiles",
+      "item": [
+        {
+          "name": "Create Organization Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations"
+              ]
+            },
+            "description": "Add organization profile to party.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"party_id\": \"{{party_id}}\",\n  \"registration_number\": \"CORP-2026-9021\",\n  \"tax_id\": \"TAX-ORG-9021\",\n  \"industry\": \"Manufacturing & Logistics\",\n  \"employee_count\": 450,\n  \"founded_date\": \"2010-04-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Registration number saved\", function () {",
+                  "    pm.expect(data.registration_number).to.eql(\"CORP-2026-9021\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Organization Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/{{party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "{{party_id}}"
+              ]
+            },
+            "description": "Get organization profile by party ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Matches party_id\", function () {",
+                  "    pm.expect(data.party_id).to.eql(pm.collectionVariables.get(\"party_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Organization Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/organizations/{{party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "organizations",
+                "{{party_id}}"
+              ]
+            },
+            "description": "Update organization profile attributes.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registration_number\": \"CORP-2026-9021\",\n  \"tax_id\": \"TAX-ORG-9021-V2\",\n  \"industry\": \"Advanced Aerospace & Logistics\",\n  \"employee_count\": 520,\n  \"founded_date\": \"2010-04-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Employee count updated\", function () {",
+                  "    pm.expect(data.employee_count).to.eql(520);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03. Individual Profiles",
+      "item": [
+        {
+          "name": "Create Individual Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/individuals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "individuals"
+              ]
+            },
+            "description": "Create individual natural person profile.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"party_id\": \"{{indiv_party_id}}\",\n  \"first_name\": \"Sarah\",\n  \"middle_name\": \"Jean\",\n  \"last_name\": \"Connor\",\n  \"date_of_birth\": \"1985-02-28\",\n  \"gender\": \"FEMALE\",\n  \"national_id\": \"NAT-ID-884123\",\n  \"job_title\": \"Principal Technical Architect\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"First name matches\", function () {",
+                  "    pm.expect(data.first_name).to.eql(\"Sarah\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Individual Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/individuals/{{indiv_party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "individuals",
+                "{{indiv_party_id}}"
+              ]
+            },
+            "description": "Get individual profile by party ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Individual Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/individuals/{{indiv_party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "individuals",
+                "{{indiv_party_id}}"
+              ]
+            },
+            "description": "Update individual profile.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Sarah\",\n  \"middle_name\": \"Jean\",\n  \"last_name\": \"Connor\",\n  \"date_of_birth\": \"1985-02-28\",\n  \"gender\": \"FEMALE\",\n  \"national_id\": \"NAT-ID-884123\",\n  \"job_title\": \"Chief Technology Officer (CTO)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Job title updated\", function () {",
+                  "    pm.expect(data.job_title).to.eql(\"Chief Technology Officer (CTO)\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04. Customers",
+      "item": [
+        {
+          "name": "Atomic One-Shot Customer Onboarding",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/composite",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "composite"
+              ]
+            },
+            "description": "Creates Party, Organization, Customer, and Address atomically in one transaction.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"party_type\": \"ORGANIZATION\",\n  \"display_name\": \"Nexus Dynamics Inc\",\n  \"legal_name\": \"Nexus Dynamics Incorporated\",\n  \"email\": \"orders@nexusdynamics.com\",\n  \"phone\": \"+1-800-555-1200\",\n  \"website\": \"https://nexusdynamics.com\",\n  \"registration_number\": \"NEX-992144-C\",\n  \"industry\": \"Artificial Intelligence & Cloud\",\n  \"employee_count\": 300,\n  \"founded_date\": \"2018-09-01\",\n  \"customer_code\": \"CUST-NEXUS-{{$timestamp}}\",\n  \"customer_group\": \"ENTERPRISE\",\n  \"credit_limit\": 100000.0,\n  \"credit_status\": \"ACTIVE\",\n  \"payment_terms_days\": 30,\n  \"address\": {\n    \"address_type\": \"BILLING\",\n    \"address_line1\": \"700 Innovation Way\",\n    \"address_line2\": \"Suite 500\",\n    \"city\": \"San Francisco\",\n    \"state\": \"CA\",\n    \"postal_code\": \"94105\",\n    \"country_code\": \"US\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.customer && data.customer.id) {",
+                  "    pm.collectionVariables.set(\"customer_id\", data.customer.id);",
+                  "}",
+                  "if (data && data.party && data.party.id) {",
+                  "    pm.collectionVariables.set(\"party_id\", data.party.id);",
+                  "}",
+                  "pm.test(\"Customer is registered\", function () {",
+                  "    pm.expect(data.customer.credit_limit).to.eql(100000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Customer from Existing Party",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers"
+              ]
+            },
+            "description": "Promotes an existing party to a customer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"party_id\": \"{{indiv_party_id}}\",\n  \"customer_code\": \"CUST-INDIV-{{$timestamp}}\",\n  \"customer_group\": \"RETAIL\",\n  \"credit_limit\": 15000.0,\n  \"payment_terms_days\": 15,\n  \"credit_status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Customers (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers?limit=10&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers?limit=10&offset=0"
+              ]
+            },
+            "description": "Lists customer accounts with filters."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customer by Customer ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customer_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "{{customer_id}}"
+              ]
+            },
+            "description": "Get customer by customer ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Matches customer_id\", function () {",
+                  "    pm.expect(data.id).to.eql(pm.collectionVariables.get(\"customer_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Customer by Party ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/party/{{party_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "party",
+                "{{party_id}}"
+              ]
+            },
+            "description": "Get customer profile associated with party ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Customer Details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customer_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "{{customer_id}}"
+              ]
+            },
+            "description": "Updates customer credit limit, terms, and status.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_group\": \"ENTERPRISE_VIP\",\n  \"credit_limit\": 250000.0,\n  \"credit_status\": \"ACTIVE\",\n  \"payment_terms_days\": 60\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Credit limit increased\", function () {",
+                  "    pm.expect(data.credit_limit).to.eql(250000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Customer Portal User Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customer_id}}/user-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "{{customer_id}}",
+                "user-accounts"
+              ]
+            },
+            "description": "Links an external IAM/Auth0 user ID to the customer portal.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{$guid}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"customer_account_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Customer User Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customer_id}}/user-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "{{customer_id}}",
+                "user-accounts"
+              ]
+            },
+            "description": "Lists all portal users associated with customer."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Toggle Customer User Account Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/user-accounts/{{customer_account_id}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customers",
+                "user-accounts",
+                "{{customer_account_id}}",
+                "status"
+              ]
+            },
+            "description": "Activate or deactivate a customer portal user account.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"User account deactivated\", function () {",
+                  "    pm.expect(data.is_active).to.eql(false);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05. Suppliers",
+      "item": [
+        {
+          "name": "Atomic One-Shot Supplier Onboarding",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/suppliers/composite",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "composite"
+              ]
+            },
+            "description": "Atomic onboarding for vendors: Party + Organization + Supplier + Warehouse address.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"party_type\": \"ORGANIZATION\",\n  \"display_name\": \"Titanium Parts GmbH\",\n  \"legal_name\": \"Titanium Parts Gesellschaft mit beschr\\u00e4nkter Haftung\",\n  \"email\": \"vendor@titaniumparts.de\",\n  \"phone\": \"+49-30-123456\",\n  \"registration_number\": \"DE-BER-88412\",\n  \"industry\": \"Heavy Metal Fabrication\",\n  \"employee_count\": 180,\n  \"founded_date\": \"2005-06-12\",\n  \"supplier_code\": \"SUPP-TITAN-{{$timestamp}}\",\n  \"supplier_group\": \"DIRECT_MATERIALS\",\n  \"supplier_rating\": 4.85,\n  \"currency_code\": \"EUR\",\n  \"payment_terms_days\": 30,\n  \"payment_method\": \"BANK_WIRE\",\n  \"address\": {\n    \"address_type\": \"WAREHOUSE\",\n    \"address_line1\": \"Industriestrasse 42\",\n    \"city\": \"Berlin\",\n    \"postal_code\": \"10115\",\n    \"country_code\": \"DE\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.supplier && data.supplier.id) {",
+                  "    pm.collectionVariables.set(\"supplier_id\", data.supplier.id);",
+                  "}",
+                  "pm.test(\"Supplier rating set\", function () {",
+                  "    pm.expect(data.supplier.supplier_rating).to.eql(4.85);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Suppliers (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/suppliers?limit=10&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers?limit=10&offset=0"
+              ]
+            },
+            "description": "Lists suppliers with filtering and pagination."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Supplier by Supplier ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/suppliers/{{supplier_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "{{supplier_id}}"
+              ]
+            },
+            "description": "Get supplier by supplier ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Supplier",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/suppliers/{{supplier_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "{{supplier_id}}"
+              ]
+            },
+            "description": "Update supplier rating, group, and terms.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplier_group\": \"STRATEGIC_PARTNER\",\n  \"supplier_rating\": 4.95,\n  \"currency_code\": \"EUR\",\n  \"payment_terms_days\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Supplier rating updated\", function () {",
+                  "    pm.expect(data.supplier_rating).to.eql(4.95);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Supplier Vendor Portal Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/suppliers/{{supplier_id}}/user-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "{{supplier_id}}",
+                "user-accounts"
+              ]
+            },
+            "description": "Links an IAM user ID to the vendor portal.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{$guid}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"supplier_account_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Supplier Vendor Portal Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/suppliers/{{supplier_id}}/user-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suppliers",
+                "{{supplier_id}}",
+                "user-accounts"
+              ]
+            },
+            "description": "Lists accounts for vendor portal."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06. Addresses",
+      "item": [
+        {
+          "name": "Create Party Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "addresses"
+              ]
+            },
+            "description": "Adds a shipping address to party.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_type\": \"SHIPPING\",\n  \"is_primary\": false,\n  \"address_line1\": \"450 Logistics Blvd\",\n  \"address_line2\": \"Building 3B, Dock 7\",\n  \"city\": \"Memphis\",\n  \"state\": \"TN\",\n  \"postal_code\": \"38118\",\n  \"country_code\": \"US\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"address_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Addresses for Party",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "addresses"
+              ]
+            },
+            "description": "Lists all registered addresses for a party."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Contains addresses\", function () {",
+                  "    pm.expect(data.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Address by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/addresses/{{address_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "addresses",
+                "{{address_id}}"
+              ]
+            },
+            "description": "Get address by address ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/addresses/{{address_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "addresses",
+                "{{address_id}}"
+              ]
+            },
+            "description": "Updates address details and primary flag.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_type\": \"SHIPPING\",\n  \"is_primary\": true,\n  \"address_line1\": \"450 Logistics Blvd\",\n  \"address_line2\": \"Building 3B, Dock 9 (Expanded)\",\n  \"city\": \"Memphis\",\n  \"state\": \"TN\",\n  \"postal_code\": \"38118\",\n  \"country_code\": \"US\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Address updated\", function () {",
+                  "    pm.expect(data.is_primary).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/addresses/{{address_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "addresses",
+                "{{address_id}}"
+              ]
+            },
+            "description": "Deletes an address."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07. Contacts & Stakeholders",
+      "item": [
+        {
+          "name": "Create Contact Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "contacts"
+              ]
+            },
+            "description": "Registers an Email/Phone/WhatsApp contact channel.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_type\": \"EMAIL\",\n  \"contact_value\": \"operations@nexusdynamics.com\",\n  \"is_primary\": true,\n  \"label\": \"24/7 Operations Desk\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"contact_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Contacts for Party",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/contacts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "contacts"
+              ]
+            },
+            "description": "Lists all communication channels for party."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Contact by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contacts/{{contact_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contacts",
+                "{{contact_id}}"
+              ]
+            },
+            "description": "Get contact channel by ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Contact Channel",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contacts/{{contact_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contacts",
+                "{{contact_id}}"
+              ]
+            },
+            "description": "Update contact channel value or label.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_type\": \"EMAIL\",\n  \"contact_value\": \"ops-priority@nexusdynamics.com\",\n  \"is_primary\": true,\n  \"label\": \"VIP Tier 1 Operations Support\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Contact updated\", function () {",
+                  "    pm.expect(data.contact_value).to.eql(\"ops-priority@nexusdynamics.com\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Contact Channel",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contacts/{{contact_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contacts",
+                "{{contact_id}}"
+              ]
+            },
+            "description": "Deletes contact channel."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Contact Person (Key Account Manager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/contact-persons",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "contact-persons"
+              ]
+            },
+            "description": "Creates an executive stakeholder/point of contact for a party.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Alexander\",\n  \"last_name\": \"Pierce\",\n  \"designation\": \"Executive VP of Strategic Partnerships\",\n  \"department\": \"Executive Leadership\",\n  \"email\": \"a.pierce@nexusdynamics.com\",\n  \"phone\": \"+1-555-8821\",\n  \"mobile\": \"+1-555-9932\",\n  \"is_primary\": true,\n  \"notes\": \"Direct executive decision maker for vendor contracts.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"person_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Contact Persons for Party",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/contact-persons",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "contact-persons"
+              ]
+            },
+            "description": "Lists stakeholder contact persons."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Contact Person by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contact-persons/{{person_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contact-persons",
+                "{{person_id}}"
+              ]
+            },
+            "description": "Get contact person details by ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Contact Person",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contact-persons/{{person_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contact-persons",
+                "{{person_id}}"
+              ]
+            },
+            "description": "Updates contact person profile.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Alexander\",\n  \"last_name\": \"Pierce\",\n  \"designation\": \"Chief Commercial Officer (CCO)\",\n  \"department\": \"Commercial Strategy\",\n  \"email\": \"a.pierce@nexusdynamics.com\",\n  \"phone\": \"+1-555-8821\",\n  \"is_primary\": true,\n  \"notes\": \"Promoted to CCO in Q4.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Designation updated\", function () {",
+                  "    pm.expect(data.designation).to.eql(\"Chief Commercial Officer (CCO)\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Contact Person",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/contact-persons/{{person_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "contact-persons",
+                "{{person_id}}"
+              ]
+            },
+            "description": "Deletes contact person."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08. CRM Notes",
+      "item": [
+        {
+          "name": "Create CRM Interaction Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/notes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "notes"
+              ]
+            },
+            "description": "Creates chronological CRM interaction note.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Client requested 15% discount for 3-year upfront commitment. Follow up scheduled next Tuesday.\",\n  \"note_type\": \"MEETING_SUMMARY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.collectionVariables.set(\"note_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Notes for Party",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/parties/{{party_id}}/notes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "parties",
+                "{{party_id}}",
+                "notes"
+              ]
+            },
+            "description": "Lists all CRM notes for party in reverse chronological order."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var data = pm.response.json();",
+                  "pm.test(\"Notes list returned\", function () {",
+                  "    pm.expect(data.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Note by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notes/{{note_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notes",
+                "{{note_id}}"
+              ]
+            },
+            "description": "Get note by ID."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Note",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notes/{{note_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notes",
+                "{{note_id}}"
+              ]
+            },
+            "description": "Deletes CRM note."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

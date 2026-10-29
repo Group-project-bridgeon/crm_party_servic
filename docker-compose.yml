@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: party-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: party
+    ports:
+      - "5432:5432"
+    volumes:
+      - party_postgres_data:/var/lib/postgresql/data
+      - ./db/migrations/000001_create_party_schema.up.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d party"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - party_network
+
+  party-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: party-service
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/party?sslmode=disable"
+      ENV: "development"
+      LOG_LEVEL: "INFO"
+      SHUTDOWN_TIMEOUT_SECONDS: "10"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - party_network
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: party-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - party_prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - party_network
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: party-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - party_grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - party_network
+
+volumes:
+  party_postgres_data:
+    driver: local
+  party_prometheus_data:
+    driver: local
+  party_grafana_data:
+    driver: local
+
+networks:
+  party_network:
+    driver: bridge
